@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Focus Visible - Indikator fokus keyboard yang tegas ===== */
+*:focus-visible {
+  outline: 3px solid #E53935;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ===== Scrollbar halus ===== */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ===== Base typography ===== */
+body {
+  min-height: 100vh;
+}
+
+/* ===== Animasi transisi halus ===== */
+.transition-default {
+  @apply transition-all duration-200 ease-in-out;
+}
