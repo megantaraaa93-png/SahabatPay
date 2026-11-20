@@ -1,3 +1,4 @@
+
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useA11y } from '../context/A11yContext';
@@ -5,26 +6,16 @@ import { useAuth } from '../context/AuthContext';
 import { useWallet } from '../context/WalletContext';
 import { useAudioGuidance } from './useAudioGuidance';
 import { formatRupiah } from '../utils/formatCurrency';
-
-/**
- * Hook useVoiceCommand
- * Asisten Suara Global SahabatPay berbasis Web Speech Recognition API Bahasa Indonesia.
- *
- * FITUR UTAMA:
- * 1. Global & Always-Ready: Aktif sejak pertama kali membuka aplikasi (Welcome, Login, Register, dll.).
- * 2. Kontekstual: Memahami halaman yang sedang dibuka (`currentPath`) dan aksi yang relevan.
- * 3. Aman: Tidak mengeksekusi transfer atau pembayaran langsung tanpa review & PIN manual.
- * 4. Komprehensif: Mendukung navigasi, informasi saldo, pemilihan mode, bantuan onboarding,
- *    dan pengecekan status lokasi ("Saya di mana?").
- */
+import { interpretVoiceIntent } from '../services/aiIntentService';
 
 // ============================================================
-// DAFTAR INFORMASI HALAMAN UNTUK RESPONS KONTEKSTUAL
+// DAFTAR INFORMASI HALAMAN UNTUK RESPONS KONTEXTUAL
 // ============================================================
+
 const PAGE_CONTEXT_INFO = {
   '/': {
     name: 'Halaman Selamat Datang SahabatPay',
-    help: 'Di halaman ini, Anda dapat memilih mode kenyamanan (Normal, Audio Guidance, atau Easy Mode), masuk ke akun, membuat akun baru, atau mencoba akun demo langsung.',
+    help: 'Di halaman ini, Anda dapat memilih mode kenyamanan Normal, Audio Guidance, atau Easy Mode, masuk ke akun, membuat akun baru, atau mencoba akun demo langsung.',
   },
   '/login': {
     name: 'Halaman Masuk Akun',
@@ -85,13 +76,112 @@ const PAGE_CONTEXT_INFO = {
 };
 
 // ============================================================
+// NORMALISASI UCAPAN
+// ============================================================
+
+function normalizeVoiceText(rawText) {
+  let text = String(rawText || '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[.,!?;:]/g, ' ')
+    .replace(/[-_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // Variasi pengucapan QRIS dari Speech Recognition.
+  const hasSeparatedQris = /\bq\s+r\s+i\s+s\b/.test(text);
+
+  const hasPaymentContext =
+    /\b(bayar|pembayaran|scan|pindai|kode|merchant|kasir|qris|qr|kris)\b/.test(text) ||
+    hasSeparatedQris;
+
+  if (hasPaymentContext) {
+    const qrisPatterns = [
+      /\bq\s+r\s+i\s+s\b/g,
+      /\bq\s*r\s*i\s*s\b/g,
+      /\bkris\b/g,
+      /\bkueris\b/g,
+      /\bkyuris\b/g,
+      /\bkode\s+qr\b/g,
+      /\bkode\s+q\s+r\b/g,
+    ];
+
+    qrisPatterns.forEach((pattern) => {
+      text = text.replace(pattern, 'qris');
+    });
+  }
+
+  // Hilangkan awalan percakapan.
+  text = text
+    .replace(/^(tolong\s+)?(bukakan|buka)\s+(halaman\s+)?/, '')
+    .replace(/^(saya\s+ingin|aku\s+ingin|saya\s+mau|aku\s+mau)\s+/, '')
+    .replace(/^(tolong\s+)?(pergi\s+ke|masuk\s+ke)\s+/, '')
+    .trim();
+
+  // Alias ucapan sehari-hari.
+  const aliases = {
+    'halaman isi saldo': 'isi saldo',
+    'tambah uang': 'isi saldo',
+    'tambah saldo': 'isi saldo',
+    'isi dompet': 'isi saldo',
+    'topup': 'top up',
+
+    'halaman transfer': 'transfer',
+    'transfer saldo': 'transfer',
+    'kirim uang': 'kirim uang',
+    'mengirim uang': 'kirim uang',
+    'kirim saldo': 'kirim saldo',
+
+    'riwayat transaksi': 'riwayat',
+    'histori transaksi': 'histori',
+    'mutasi transaksi': 'mutasi',
+    'aktivitas transaksi': 'aktivitas',
+
+    'kembali ke dashboard': 'dashboard',
+    'balik ke dashboard': 'dashboard',
+    'pergi ke dashboard': 'dashboard',
+    'kembali ke beranda': 'beranda',
+    'balik ke beranda': 'beranda',
+    'pergi ke beranda': 'beranda',
+
+    'buka pembayaran': 'qris',
+    'menu pembayaran': 'qris',
+    'bayar pakai qr': 'qris',
+    'bayar dengan qr': 'qris',
+    'bayar pakai qris': 'qris',
+    'bayar dengan qris': 'qris',
+    'pindai kode qris': 'qris',
+    'scan kode qris': 'qris',
+    'buka kris': 'qris',
+    'buka q r i s': 'qris',
+
+    'cek uang': 'cek saldo',
+    'berapa uang saya': 'cek saldo',
+    'berapa saldo saya': 'cek saldo',
+    'lihat saldo': 'cek saldo',
+
+    'baca transaksi terakhir': 'transaksi terakhir',
+    'bacakan transaksi terakhir': 'transaksi terakhir',
+    'mutasi terakhir': 'transaksi terakhir',
+
+    'bantuan halaman ini': 'bantuan',
+    'tolong bantu saya': 'bantuan',
+  };
+
+  return aliases[text] || text;
+}
+
+// ============================================================
 // COMMAND REGISTRY
 // ============================================================
+
 function buildCommandRegistry() {
   return [
-    // ==========================================
-    // 1. RESPON STATUS LOKASI & BANTUAN KONTEKSTUAL
-    // ==========================================
+    // --------------------------------------------------------
+    // 1. STATUS LOKASI DAN BANTUAN KONTEXTUAL
+    // --------------------------------------------------------
+
     {
       patterns: [
         /^(saya\s+)?di\s*mana(\s+saya)?$/,
@@ -101,35 +191,44 @@ function buildCommandRegistry() {
       ],
       handler: ({ currentPath, speakText, playSuccessSound }) => {
         playSuccessSound();
+
         const info = PAGE_CONTEXT_INFO[currentPath] || {
           name: 'SahabatPay',
           help: 'Anda dapat meminta saya untuk membuka beranda, cek saldo, atau bantuan lainnya.',
         };
+
         speakText(`Anda sedang berada di ${info.name}. ${info.help}`);
       },
       description: '"Saya di mana?" / "Halaman apa ini?"',
     },
+
     {
       patterns: [
         /^(minta\s+)?bantuan$/,
         /^apa\s+yang\s+bisa\s+dilakukan$/,
         /^panduan\s+halaman$/,
         /^tolong(\s+saya)?$/,
+        /^apa\s+yang\s+bisa\s+saya\s+lakukan(\s+di\s+sini)?$/,
+        /^jelaskan\s+halaman\s+ini$/,
+        /^bantu\s+saya$/,
       ],
       handler: ({ currentPath, speakText, playSuccessSound }) => {
         playSuccessSound();
+
         const info = PAGE_CONTEXT_INFO[currentPath] || {
           name: 'SahabatPay',
-          help: 'Katakan perintah seperti: "cek saldo", "buka transfer", atau "aktifkan mode suara".',
+          help: 'Katakan perintah seperti cek saldo, buka transfer, atau aktifkan mode suara.',
         };
+
         speakText(`Panduan untuk ${info.name}: ${info.help}`);
       },
-      description: '"Bantuan" / "Apa yang bisa dilakukan?"',
+      description: '"Bantuan" / "Apa yang bisa saya lakukan di sini?"',
     },
 
-    // ==========================================
-    // 2. ONBOARDING & AUTENTIKASI (SEBELUM LOGIN)
-    // ==========================================
+    // --------------------------------------------------------
+    // 2. ONBOARDING DAN AUTENTIKASI
+    // --------------------------------------------------------
+
     {
       patterns: [
         /^(buka\s+)?(halaman\s+)?(login|masuk)(\s+ke\s+akun)?$/,
@@ -142,6 +241,7 @@ function buildCommandRegistry() {
       },
       description: '"Buka halaman login" / "Masuk"',
     },
+
     {
       patterns: [
         /^(buka\s+)?(halaman\s+)?(daftar|registrasi|buat\s+akun)(\s+baru)?$/,
@@ -155,6 +255,7 @@ function buildCommandRegistry() {
       },
       description: '"Saya ingin membuat akun" / "Daftar"',
     },
+
     {
       patterns: [
         /^(coba\s+)?(akun\s+)?demo(\s+langsung)?$/,
@@ -164,11 +265,12 @@ function buildCommandRegistry() {
       handler: ({ loginDemo, navigate, speakText, playSuccessSound }) => {
         loginDemo();
         playSuccessSound();
-        speakText('Masuk sebagai akun demo resmi berhasil. Selamat datang di Beranda SahabatPay.');
+        speakText('Masuk sebagai akun demo berhasil. Selamat datang di Beranda SahabatPay.');
         navigate('/dashboard');
       },
       description: '"Coba akun demo" / "Masuk demo"',
     },
+
     {
       patterns: [
         /^bantu(\s+saya)?\s+login$/,
@@ -177,15 +279,18 @@ function buildCommandRegistry() {
       ],
       handler: ({ navigate, currentPath, speakText, playSuccessSound }) => {
         playSuccessSound();
+
         if (currentPath !== '/login') {
           navigate('/login');
         }
+
         speakText(
-          'Silakan masukkan nomor handphone dan kata sandi Anda pada formulir. Untuk mencoba instan, Anda juga dapat mengatakan "coba akun demo".'
+          'Silakan masukkan nomor handphone dan kata sandi Anda pada formulir. Untuk mencoba instan, Anda juga dapat mengatakan coba akun demo.'
         );
       },
       description: '"Bantu saya login"',
     },
+
     {
       patterns: [
         /^(saya\s+)?lupa\s+(pin|password|kata\s+sandi)$/,
@@ -194,11 +299,12 @@ function buildCommandRegistry() {
       handler: ({ speakText, playSuccessSound }) => {
         playSuccessSound();
         speakText(
-          'Pada versi prototype simulasi ini, akun demo menggunakan kata sandi "Demo123!" dan PIN transaksi "123456". Anda juga dapat membuat akun baru kapan saja.'
+          'Pada versi prototype simulasi ini, Anda dapat menggunakan akun demo atau membuat akun baru. Jangan pernah membagikan PIN dan kata sandi kepada orang lain.'
         );
       },
       description: '"Saya lupa PIN" / "Lupa password"',
     },
+
     {
       patterns: [
         /^bantu(\s+saya)?\s+(daftar|mendaftar)$/,
@@ -206,15 +312,18 @@ function buildCommandRegistry() {
       ],
       handler: ({ navigate, currentPath, speakText, playSuccessSound }) => {
         playSuccessSound();
+
         if (currentPath !== '/register') {
           navigate('/register');
         }
+
         speakText(
           'Isi nama lengkap, nomor handphone, alamat email, dan kata sandi minimal enam karakter, lalu centang persetujuan syarat ketentuan.'
         );
       },
       description: '"Bantu saya mendaftar"',
     },
+
     {
       patterns: [
         /^bantu\s+verifikasi$/,
@@ -224,11 +333,12 @@ function buildCommandRegistry() {
       handler: ({ speakText, playSuccessSound }) => {
         playSuccessSound();
         speakText(
-          'Untuk kemudahan simulasi prototype, kode OTP verifikasi adalah satu dua tiga empat lima enam (123456). Anda dapat menekan tombol Isi Otomatis Kode Demo.'
+          'Untuk kemudahan simulasi prototype, kode OTP verifikasi adalah satu dua tiga empat lima enam. Anda juga dapat menekan tombol Isi Otomatis Kode Demo.'
         );
       },
       description: '"Bantu verifikasi" / "Apa kode OTP?"',
     },
+
     {
       patterns: [
         /^bantu\s+(buat\s+)?pin$/,
@@ -242,6 +352,7 @@ function buildCommandRegistry() {
       },
       description: '"Bantu buat PIN"',
     },
+
     {
       patterns: [
         /^(pelajari\s+)?(fitur\s+)?aksesibilitas$/,
@@ -256,38 +367,53 @@ function buildCommandRegistry() {
       description: '"Pelajari fitur aksesibilitas"',
     },
 
-    // ==========================================
-    // 3. NAVIGASI HALAMAN UTAMA & TRANSAKSI
-    // ==========================================
+    // --------------------------------------------------------
+    // 3. NAVIGASI HALAMAN
+    // --------------------------------------------------------
+
     {
-      patterns: [/^(buka\s+)?(beranda|dashboard|menu\s+utama|halaman\s+utama|home)$/],
+      patterns: [
+        /^(buka\s+)?(beranda|dashboard|menu\s+utama|halaman\s+utama|home|halaman\s+depan)$/,
+        /^(pergi|kembali|balik)\s+ke\s+(beranda|dashboard|halaman\s+utama)$/,
+      ],
       handler: ({ navigate, speakText, playSuccessSound }) => {
         playSuccessSound();
         speakText('Membuka halaman Beranda.');
         navigate('/dashboard');
       },
-      description: '"Buka beranda" / "Dashboard"',
+      description: '"Buka beranda" / "Kembali ke dashboard"',
     },
+
     {
-      patterns: [/^(buka\s+)?(riwayat|histori|mutasi|catatan\s+transaksi|aktivitas)$/],
+      patterns: [
+        /^(buka\s+)?(riwayat|histori|mutasi|catatan\s+transaksi|aktivitas)$/,
+        /^(lihat|tampilkan|buka)\s+(riwayat|histori|mutasi)\s+transaksi$/,
+        /^(cek|lihat)\s+transaksi$/,
+      ],
       handler: ({ navigate, speakText, playSuccessSound }) => {
         playSuccessSound();
         speakText('Membuka halaman Riwayat Transaksi.');
         navigate('/history');
       },
-      description: '"Buka riwayat" / "Mutasi"',
+      description: '"Buka riwayat" / "Lihat mutasi transaksi"',
     },
+
     {
-      patterns: [/^(buka\s+)?(profil|akun\s+saya|profil\s+saya)$/],
+      patterns: [
+        /^(buka\s+)?(profil|akun\s+saya|profil\s+saya|data\s+diri|informasi\s+profil)$/,
+      ],
       handler: ({ navigate, speakText, playSuccessSound }) => {
         playSuccessSound();
         speakText('Membuka halaman Profil Saya.');
         navigate('/profile');
       },
-      description: '"Buka profil"',
+      description: '"Buka profil" / "Data diri"',
     },
+
     {
-      patterns: [/^(buka\s+)?(pengaturan\s+akun|akun\s+settings|ubah\s+sandi|ganti\s+pin)$/],
+      patterns: [
+        /^(buka\s+)?(pengaturan\s+akun|akun\s+settings|ubah\s+sandi|ganti\s+pin)$/,
+      ],
       handler: ({ navigate, speakText, playSuccessSound }) => {
         playSuccessSound();
         speakText('Membuka halaman Pengaturan Akun.');
@@ -295,8 +421,12 @@ function buildCommandRegistry() {
       },
       description: '"Buka pengaturan akun"',
     },
+
     {
-      patterns: [/^(buka\s+)?(aksesibilitas|pengaturan\s+aksesibilitas|preferensi\s+aksesibilitas|a11y)$/],
+      patterns: [
+        /^(buka\s+)?(aksesibilitas|pengaturan\s+aksesibilitas|preferensi\s+aksesibilitas|a11y)$/,
+        /^(ubah|ganti)\s+mode\s+(aksesibilitas|tampilan)$/,
+      ],
       handler: ({ navigate, speakText, playSuccessSound }) => {
         playSuccessSound();
         speakText('Membuka halaman Preferensi Aksesibilitas.');
@@ -304,8 +434,11 @@ function buildCommandRegistry() {
       },
       description: '"Buka aksesibilitas"',
     },
+
     {
-      patterns: [/^(buka\s+)?(tentang|about|tentang\s+sahabatpay|informasi\s+aplikasi)$/],
+      patterns: [
+        /^(buka\s+)?(tentang|about|tentang\s+sahabatpay|informasi\s+aplikasi)$/,
+      ],
       handler: ({ navigate, speakText, playSuccessSound }) => {
         playSuccessSound();
         speakText('Membuka halaman Tentang SahabatPay.');
@@ -313,44 +446,57 @@ function buildCommandRegistry() {
       },
       description: '"Buka tentang SahabatPay"',
     },
+
     {
       patterns: [
-        /^(buka\s+)?(top\s*up|isi\s+saldo|tambah\s+saldo|topup)$/,
-        /^saya\s+ingin\s+(isi\s+saldo|top\s*up)$/,
+        /^(buka\s+)?(top\s*up|isi\s+saldo|tambah\s+saldo|topup|isi\s+dompet|tambah\s+uang)$/,
+        /^saya\s+ingin\s+(isi\s+saldo|top\s*up|menambah\s+saldo)$/,
+        /^(saya\s+ingin\s+)?(mengisi|menambah)\s+saldo$/,
       ],
       handler: ({ navigate, speakText, playSuccessSound }) => {
         playSuccessSound();
         speakText('Membuka halaman Top Up. Silakan tentukan nominal yang Anda inginkan.');
         navigate('/top-up');
       },
-      description: '"Buka top up" / "Saya ingin isi saldo"',
+      description: '"Buka top up" / "Saya ingin menambah saldo"',
     },
+
     {
       patterns: [
         /^(buka\s+)?(transfer|kirim\s+uang|kirim\s+saldo|transfer\s+saldo)$/,
         /^saya\s+ingin\s+(transfer|kirim\s+uang)$/,
+        /^(saya\s+ingin\s+)?(mengirim|memindahkan)\s+uang$/,
       ],
       handler: ({ navigate, speakText, playSuccessSound }) => {
         playSuccessSound();
         speakText('Membuka halaman Transfer Saldo. Cari penerima dan tentukan nominal.');
         navigate('/transfer');
       },
-      description: '"Buka transfer" / "Saya ingin transfer"',
+      description: '"Buka transfer" / "Saya ingin mengirim uang"',
     },
+
     {
       patterns: [
         /^(buka\s+)?(qris|scan|pindai|bayar\s+qris|pembayaran\s+qris)$/,
-        /^saya\s+ingin\s+bayar\s+qris$/,
+        /^(saya\s+ingin\s+)?(bayar|melakukan\s+pembayaran)\s+(pakai|dengan)\s+qris$/,
+        /^(saya\s+ingin\s+)?(scan|pindai)\s+(qr|qris|kode\s+qr|kode\s+qris)$/,
+        /^(buka\s+)?(kris|kueris|kyuris)$/,
+        /^(bayar|pembayaran)\s+(di\s+)?(kasir|merchant)$/,
+        /^(buka\s+)?kode\s+qris$/,
       ],
       handler: ({ navigate, speakText, playSuccessSound }) => {
         playSuccessSound();
-        speakText('Membuka halaman Pembayaran QRIS. Anda dapat memilih merchant atau memindai QR.');
+        speakText('Membuka halaman Pembayaran QRIS. Anda dapat memilih merchant atau memindai kode QR.');
         navigate('/qris');
       },
-      description: '"Buka QRIS" / "Pindai QR"',
+      description: '"Buka QRIS" / "Buka kris" / "Bayar di kasir"',
     },
+
     {
-      patterns: [/^(buka\s+)?(daftar\s+penerima|penerima\s+tersimpan|kontak\s+transfer|recipients)$/],
+      patterns: [
+        /^(buka\s+)?(daftar\s+penerima|penerima\s+tersimpan|kontak\s+transfer|recipients)$/,
+        /^(lihat|tampilkan)\s+(daftar\s+)?penerima$/,
+      ],
       handler: ({ navigate, speakText, playSuccessSound }) => {
         playSuccessSound();
         speakText('Membuka halaman Daftar Penerima Transfer.');
@@ -358,8 +504,13 @@ function buildCommandRegistry() {
       },
       description: '"Buka daftar penerima"',
     },
+
     {
-      patterns: [/^(kembali|kembali\s+ke\s+beranda|pergi\s+ke\s+beranda|balik)$/],
+      patterns: [
+        /^(kembali|balik)$/,
+        /^kembali\s+ke\s+beranda$/,
+        /^pergi\s+ke\s+beranda$/,
+      ],
       handler: ({ navigate, speakText, playSuccessSound }) => {
         playSuccessSound();
         speakText('Kembali ke halaman Beranda.');
@@ -368,13 +519,15 @@ function buildCommandRegistry() {
       description: '"Kembali" / "Kembali ke beranda"',
     },
 
-    // ==========================================
-    // 4. INFORMASI SALDO & TRANSAKSI
-    // ==========================================
+    // --------------------------------------------------------
+    // 4. INFORMASI SALDO DAN TRANSAKSI
+    // --------------------------------------------------------
+
     {
       patterns: [
         /^(berapa\s+)?(saldo|saldo\s+saya|cek\s+saldo|cek\s+uang|uang\s+saya|dompet)(\s+saya)?(\s+sekarang)?$/,
         /^bacakan\s+saldo(\s+saya)?$/,
+        /^lihat\s+saldo$/,
       ],
       handler: ({ balance, speakText, playSuccessSound }) => {
         playSuccessSound();
@@ -382,17 +535,21 @@ function buildCommandRegistry() {
       },
       description: '"Berapa saldo saya?" / "Cek saldo"',
     },
+
     {
       patterns: [
         /^(bacakan\s+)?(transaksi\s+terakhir|baca\s+transaksi|mutasi\s+terakhir|cari\s+transaksi\s+terakhir)$/,
       ],
       handler: ({ transactions, speakText, playSuccessSound }) => {
         playSuccessSound();
+
         if (!transactions || transactions.length === 0) {
           speakText('Belum ada riwayat transaksi di akun Anda.');
         } else {
           const last = transactions[0];
-          const isIncome = last.type === 'top_up' || last.type === 'transfer_in';
+          const isIncome =
+            last.type === 'top_up' || last.type === 'transfer_in';
+
           speakText(
             `Transaksi terakhir Anda adalah ${last.title || last.description}, ${
               isIncome ? 'uang masuk' : 'uang keluar'
@@ -402,33 +559,41 @@ function buildCommandRegistry() {
       },
       description: '"Bacakan transaksi terakhir"',
     },
+
     {
       patterns: [
         /^(bacakan\s+)?(riwayat\s+transaksi|semua\s+transaksi|daftar\s+transaksi)$/,
       ],
       handler: ({ transactions, speakText, playSuccessSound, navigate }) => {
         playSuccessSound();
+
         if (!transactions || transactions.length === 0) {
           speakText('Belum ada transaksi di akun Anda.');
         } else {
-          speakText(`Anda memiliki ${transactions.length} mutasi transaksi. Membuka halaman riwayat transaksi.`);
+          speakText(
+            `Anda memiliki ${transactions.length} mutasi transaksi. Membuka halaman riwayat transaksi.`
+          );
           navigate('/history');
         }
       },
       description: '"Bacakan riwayat transaksi"',
     },
+
     {
       patterns: [
         /^(bacakan\s+)?(ringkasan\s+keuangan|ringkasan|total\s+keuangan|status\s+keuangan)$/,
       ],
       handler: ({ balance, transactions, speakText, playSuccessSound }) => {
         playSuccessSound();
+
         const income = (transactions || [])
           .filter((t) => t.type === 'top_up' || t.type === 'transfer_in')
-          .reduce((s, t) => s + (t.amount || 0), 0);
+          .reduce((sum, t) => sum + (t.amount || 0), 0);
+
         const outcome = (transactions || [])
           .filter((t) => t.type !== 'top_up' && t.type !== 'transfer_in')
-          .reduce((s, t) => s + (t.amount || 0), 0);
+          .reduce((sum, t) => sum + (t.amount || 0), 0);
+
         speakText(
           `Ringkasan keuangan: Saldo aktif ${formatRupiah(balance)}. ` +
           `Total uang masuk ${formatRupiah(income)}. ` +
@@ -438,44 +603,59 @@ function buildCommandRegistry() {
       },
       description: '"Bacakan ringkasan keuangan"',
     },
+
     {
-      patterns: [/^(bacakan\s+)?(total\s+uang\s+masuk|pemasukan\s+total)$/],
+      patterns: [
+        /^(bacakan\s+)?(total\s+uang\s+masuk|pemasukan\s+total)$/,
+      ],
       handler: ({ transactions, speakText, playSuccessSound }) => {
         playSuccessSound();
+
         const total = (transactions || [])
           .filter((t) => t.type === 'top_up' || t.type === 'transfer_in')
-          .reduce((s, t) => s + (t.amount || 0), 0);
+          .reduce((sum, t) => sum + (t.amount || 0), 0);
+
         speakText(`Total uang masuk Anda adalah ${formatRupiah(total)}.`);
       },
       description: '"Bacakan total uang masuk"',
     },
+
     {
-      patterns: [/^(bacakan\s+)?(total\s+uang\s+keluar|pengeluaran\s+total)$/],
+      patterns: [
+        /^(bacakan\s+)?(total\s+uang\s+keluar|pengeluaran\s+total)$/,
+      ],
       handler: ({ transactions, speakText, playSuccessSound }) => {
         playSuccessSound();
+
         const total = (transactions || [])
           .filter((t) => t.type !== 'top_up' && t.type !== 'transfer_in')
-          .reduce((s, t) => s + (t.amount || 0), 0);
+          .reduce((sum, t) => sum + (t.amount || 0), 0);
+
         speakText(`Total uang keluar Anda adalah ${formatRupiah(total)}.`);
       },
       description: '"Bacakan total uang keluar"',
     },
+
     {
-      patterns: [/^(bacakan\s+)?(status\s+akun|informasi\s+akun|data\s+akun)$/],
+      patterns: [
+        /^(bacakan\s+)?(status\s+akun|informasi\s+akun|data\s+akun)$/,
+      ],
       handler: ({ user, balance, transactions, speakText, playSuccessSound }) => {
         playSuccessSound();
+
         const name = user?.name || 'Pengguna';
+
         speakText(
-          `Akun atas nama ${name} dalam status aktif dengan saldo ${formatRupiah(balance)} ` +
-          `dan ${(transactions || []).length} transaksi tercatat.`
+          `Akun atas nama ${name} dalam status aktif dengan saldo ${formatRupiah(balance)} dan ${(transactions || []).length} transaksi tercatat.`
         );
       },
       description: '"Bacakan status akun"',
     },
 
-    // ==========================================
-    // 5. PERINTAH MODE AKSESIBILITAS
-    // ==========================================
+    // --------------------------------------------------------
+    // 5. MODE AKSESIBILITAS
+    // --------------------------------------------------------
+
     {
       patterns: [
         /^(aktifkan\s+)?(mode\s+mudah|easy\s+mode|mode\s+besar|mode\s+lansia|mode\s+sederhana)$/,
@@ -487,6 +667,7 @@ function buildCommandRegistry() {
       },
       description: '"Aktifkan mode sederhana" / "Easy Mode"',
     },
+
     {
       patterns: [
         /^(aktifkan\s+)?(mode\s+suara|audio\s+guidance|audio\s+mode|mode\s+audio|panduan\s+suara)$/,
@@ -498,6 +679,7 @@ function buildCommandRegistry() {
       },
       description: '"Aktifkan panduan suara" / "Mode Audio"',
     },
+
     {
       patterns: [
         /^(aktifkan\s+)?(mode\s+normal|tampilan\s+standar|normal\s+mode|mode\s+biasa)$/,
@@ -510,11 +692,14 @@ function buildCommandRegistry() {
       description: '"Aktifkan mode normal"',
     },
 
-    // ==========================================
-    // 6. SHIELDS (TREMOR SHIELD & COGNITIVE DELAY)
-    // ==========================================
+    // --------------------------------------------------------
+    // 6. TREMOR SHIELD DAN COGNITIVE DELAY
+    // --------------------------------------------------------
+
     {
-      patterns: [/^aktifkan\s+(tremor\s+shield|pelindung\s+tremor|tremor)$/],
+      patterns: [
+        /^aktifkan\s+(tremor\s+shield|pelindung\s+tremor|tremor)$/,
+      ],
       handler: ({ setTremorShieldEnabled, speakText, playSuccessSound }) => {
         setTremorShieldEnabled(true);
         playSuccessSound();
@@ -522,8 +707,11 @@ function buildCommandRegistry() {
       },
       description: '"Aktifkan Tremor Shield"',
     },
+
     {
-      patterns: [/^(matikan|nonaktifkan)\s+(tremor\s+shield|pelindung\s+tremor|tremor)$/],
+      patterns: [
+        /^(matikan|nonaktifkan)\s+(tremor\s+shield|pelindung\s+tremor|tremor)$/,
+      ],
       handler: ({ setTremorShieldEnabled, speakText, playSuccessSound }) => {
         setTremorShieldEnabled(false);
         playSuccessSound();
@@ -531,8 +719,11 @@ function buildCommandRegistry() {
       },
       description: '"Matikan Tremor Shield"',
     },
+
     {
-      patterns: [/^(ubah\s+durasi\s+tremor\s+shield\s+menjadi\s+)?(satu\s+detik|1\s+detik)$/],
+      patterns: [
+        /^(ubah\s+durasi\s+tremor\s+shield\s+menjadi\s+)?(satu\s+detik|1\s+detik)$/,
+      ],
       handler: ({ setTremorDuration, speakText, playSuccessSound }) => {
         setTremorDuration(1000);
         playSuccessSound();
@@ -540,8 +731,11 @@ function buildCommandRegistry() {
       },
       description: '"Ubah durasi Tremor Shield menjadi satu detik"',
     },
+
     {
-      patterns: [/^(ubah\s+durasi\s+tremor\s+shield\s+menjadi\s+)?(satu\s+setengah\s+detik|1[,.]5\s+detik|satu\s+koma\s+lima\s+detik)$/],
+      patterns: [
+        /^(ubah\s+durasi\s+tremor\s+shield\s+menjadi\s+)?(satu\s+setengah\s+detik|1[,.]5\s+detik|satu\s+koma\s+lima\s+detik)$/,
+      ],
       handler: ({ setTremorDuration, speakText, playSuccessSound }) => {
         setTremorDuration(1500);
         playSuccessSound();
@@ -549,8 +743,11 @@ function buildCommandRegistry() {
       },
       description: '"Ubah durasi Tremor Shield menjadi satu setengah detik"',
     },
+
     {
-      patterns: [/^(ubah\s+durasi\s+tremor\s+shield\s+menjadi\s+)?(dua\s+detik|2\s+detik)$/],
+      patterns: [
+        /^(ubah\s+durasi\s+tremor\s+shield\s+menjadi\s+)?(dua\s+detik|2\s+detik)$/,
+      ],
       handler: ({ setTremorDuration, speakText, playSuccessSound }) => {
         setTremorDuration(2000);
         playSuccessSound();
@@ -558,8 +755,11 @@ function buildCommandRegistry() {
       },
       description: '"Ubah durasi Tremor Shield menjadi dua detik"',
     },
+
     {
-      patterns: [/^aktifkan\s+(cognitive\s+delay|jeda\s+telaah|cognitive)$/],
+      patterns: [
+        /^aktifkan\s+(cognitive\s+delay|jeda\s+telaah|cognitive)$/,
+      ],
       handler: ({ setCognitiveDelayEnabled, speakText, playSuccessSound }) => {
         setCognitiveDelayEnabled(true);
         playSuccessSound();
@@ -567,8 +767,11 @@ function buildCommandRegistry() {
       },
       description: '"Aktifkan Cognitive Delay Shield"',
     },
+
     {
-      patterns: [/^(matikan|nonaktifkan)\s+(cognitive\s+delay|jeda\s+telaah|cognitive)$/],
+      patterns: [
+        /^(matikan|nonaktifkan)\s+(cognitive\s+delay|jeda\s+telaah|cognitive)$/,
+      ],
       handler: ({ setCognitiveDelayEnabled, speakText, playSuccessSound }) => {
         setCognitiveDelayEnabled(false);
         playSuccessSound();
@@ -577,23 +780,30 @@ function buildCommandRegistry() {
       description: '"Matikan Cognitive Delay Shield"',
     },
 
-    // ==========================================
-    // 7. KONTROL AUDIO & KELUAR
-    // ==========================================
+    // --------------------------------------------------------
+    // 7. KONTROL AUDIO DAN KELUAR
+    // --------------------------------------------------------
+
     {
-      patterns: [/^(hentikan\s+suara|stop\s+suara|diam|berhenti\s+bicara|hentikan\s+audio)$/],
+      patterns: [
+        /^(hentikan\s+suara|stop\s+suara|diam|berhenti\s+bicara|hentikan\s+audio)$/,
+      ],
       handler: ({ stopSpeech }) => {
         stopSpeech();
       },
       description: '"Diam" / "Hentikan suara"',
     },
+
     {
-      patterns: [/^(ulangi|ulang|ulangi\s+panduan|ulang\s+panduan|baca\s+ulang)$/],
+      patterns: [
+        /^(ulangi|ulang|ulangi\s+panduan|ulang\s+panduan|baca\s+ulang)$/,
+      ],
       handler: ({ repeatLastSpeech }) => {
         repeatLastSpeech();
       },
       description: '"Ulangi panduan"',
     },
+
     {
       patterns: [
         /^(keluar\s+dari\s+akun|keluar\s+akun|logout|keluar)$/,
@@ -603,6 +813,7 @@ function buildCommandRegistry() {
           speakText('Anda belum masuk ke akun.');
           return;
         }
+
         logout();
         playSuccessSound();
         speakText('Anda telah keluar dari akun SahabatPay.');
@@ -618,13 +829,30 @@ const COMMAND_REGISTRY = buildCommandRegistry();
 // ============================================================
 // HOOK UTAMA
 // ============================================================
+
 export function useVoiceCommand() {
   const navigate = useNavigate();
   const location = useLocation();
+
   const { user, loginDemo, logout } = useAuth();
-  const { mode, setMode, setTremorShieldEnabled, setCognitiveDelayEnabled, setTremorDuration } = useA11y();
+
+  const {
+    mode,
+    setMode,
+    setTremorShieldEnabled,
+    setCognitiveDelayEnabled,
+    setTremorDuration,
+  } = useA11y();
+
   const { balance, transactions } = useWallet();
-  const { speakText, stopSpeech, repeatLastSpeech, playSuccessSound, playErrorSound } = useAudioGuidance();
+
+  const {
+    speakText,
+    stopSpeech,
+    repeatLastSpeech,
+    playSuccessSound,
+    playErrorSound,
+  } = useAudioGuidance();
 
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -634,8 +862,17 @@ export function useVoiceCommand() {
 
   const recognitionRef = useRef(null);
   const isProcessingRef = useRef(false);
+  const executeCommandRef = useRef(null);
 
-  // Inisialisasi Recognition
+  // Ref khusus untuk push-to-talk.
+  const pendingTranscriptRef = useRef('');
+  const recognitionActiveRef = useRef(false);
+  const shouldProcessRef = useRef(false);
+
+  // ----------------------------------------------------------
+  // INISIALISASI SPEECH RECOGNITION
+  // ----------------------------------------------------------
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -648,62 +885,104 @@ export function useVoiceCommand() {
     }
 
     const recognition = new SpeechRecognitionClass();
+
     recognition.lang = 'id-ID';
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
+      recognitionActiveRef.current = true;
+      shouldProcessRef.current = false;
+      pendingTranscriptRef.current = '';
+
       setIsListening(true);
       setErrorMessage('');
+      setTranscript('');
+
       isProcessingRef.current = false;
     };
 
     recognition.onresult = (event) => {
-      if (isProcessingRef.current) return;
-      isProcessingRef.current = true;
+      const result = event.results[event.results.length - 1];
+      const recognizedText = result?.[0]?.transcript?.trim();
 
-      const recognizedText = event.results[0][0].transcript;
+      if (!recognizedText) return;
+
+      // Tampung hasil pengenalan suara.
+      // Command belum dijalankan sampai tombol dilepas.
+      pendingTranscriptRef.current = recognizedText;
       setTranscript(recognizedText);
-      executeCommandFromText(recognizedText);
     };
 
     recognition.onerror = (event) => {
+      recognitionActiveRef.current = false;
+      pendingTranscriptRef.current = '';
+      shouldProcessRef.current = false;
+
       setIsListening(false);
       isProcessingRef.current = false;
+
+      if (event.error === 'aborted') return;
+
       playErrorSound();
 
       if (event.error === 'not-allowed') {
         const err =
           'Izin mikrofon ditolak. Silakan izinkan akses mikrofon di peramban Anda untuk menggunakan Voice Command.';
+
         setErrorMessage(err);
         speakText(err);
       } else if (event.error === 'no-speech') {
-        const err = 'Suara tidak terdeteksi. Silakan coba lagi.';
+        const err =
+          'Suara tidak terdeteksi. Silakan tekan tombol Bicara dan coba lagi.';
+
         setErrorMessage(err);
         speakText(err);
-      } else if (event.error !== 'aborted') {
+      } else {
         const err = 'Gagal mengenali suara. Silakan coba lagi.';
         setErrorMessage(err);
       }
     };
 
     recognition.onend = () => {
+      recognitionActiveRef.current = false;
       setIsListening(false);
-      isProcessingRef.current = false;
+
+      // Jangan proses jika pengguna belum melepas tombol.
+      if (!shouldProcessRef.current) return;
+
+      shouldProcessRef.current = false;
+
+      const text = pendingTranscriptRef.current;
+      pendingTranscriptRef.current = '';
+
+      if (text) {
+        executeCommandRef.current?.(text);
+      }
     };
 
     recognitionRef.current = recognition;
 
     return () => {
+      recognitionActiveRef.current = false;
+      pendingTranscriptRef.current = '';
+      shouldProcessRef.current = false;
+
       if (recognitionRef.current) {
-        try { recognitionRef.current.abort(); } catch {}
+        try {
+          recognitionRef.current.abort();
+        } catch {
+          // Recognition mungkin sudah berhenti.
+        }
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [playErrorSound, speakText]);
 
-  // Context untuk command handler (selalu fresh via closure baru setiap render)
+  // ----------------------------------------------------------
+  // CONTEXT UNTUK COMMAND HANDLER
+  // ----------------------------------------------------------
+
   const buildContext = useCallback(() => ({
     navigate,
     currentPath: location.pathname,
@@ -723,71 +1002,194 @@ export function useVoiceCommand() {
     playSuccessSound,
     playErrorSound,
   }), [
-    navigate, location.pathname, user, loginDemo, logout,
-    balance, transactions, mode, setMode,
-    setTremorShieldEnabled, setCognitiveDelayEnabled, setTremorDuration,
-    speakText, stopSpeech, repeatLastSpeech, playSuccessSound, playErrorSound,
+    navigate,
+    location.pathname,
+    user,
+    loginDemo,
+    logout,
+    balance,
+    transactions,
+    mode,
+    setMode,
+    setTremorShieldEnabled,
+    setCognitiveDelayEnabled,
+    setTremorDuration,
+    speakText,
+    stopSpeech,
+    repeatLastSpeech,
+    playSuccessSound,
+    playErrorSound,
   ]);
 
-  // Parsing dan Eksekusi Command via Registry
+  // ----------------------------------------------------------
+  // EKSEKUSI COMMAND LOKAL DAN AI FALLBACK
+  // ----------------------------------------------------------
+
   const executeCommandFromText = useCallback(
-    (rawText) => {
-      const clean = rawText.trim().toLowerCase().replace(/[.,!?]/g, '').replace(/\s+/g, ' ');
+    async (rawText) => {
+      const clean = normalizeVoiceText(rawText);
+
       setLastCommand(rawText);
 
       const ctx = buildContext();
 
-      // Cari command yang cocok di registry
-      for (const cmd of COMMAND_REGISTRY) {
-        const matched = cmd.patterns.some((pattern) => pattern.test(clean));
-        if (matched) {
+      // Cari command di registry lokal.
+      const runRegisteredCommand = (commandText) => {
+        for (const cmd of COMMAND_REGISTRY) {
+          const matched = cmd.patterns.some((pattern) =>
+            pattern.test(commandText)
+          );
+
+          if (!matched) continue;
+
           try {
-            cmd.handler({ ...ctx, rawText, clean });
+            cmd.handler({
+              ...ctx,
+              rawText,
+              clean: commandText,
+            });
           } catch (err) {
             console.error('Voice command handler error:', err);
+
+            playErrorSound();
+            speakText(
+              'Maaf, perintah mengalami kendala. Silakan coba kembali.'
+            );
           }
-          return;
+
+          return true;
         }
+
+        return false;
+      };
+
+      // Prioritas pertama: command lokal.
+      if (runRegisteredCommand(clean)) return;
+
+      // Jangan kirim ucapan berpotensi sensitif ke AI.
+      const sensitivePatterns = [
+        /\b(pin|password|kata sandi|sandi)\b/i,
+        /\b\d{6,}\b/,
+        /\b\d+\s*(ribu|juta|miliar)\b/i,
+        /\b(nomor rekening|rekening|nomor hp|nomor telepon)\b/i,
+      ];
+
+      const containsSensitiveData = sensitivePatterns.some((pattern) =>
+        pattern.test(rawText)
+      );
+
+      if (containsSensitiveData) {
+        playErrorSound();
+
+        speakText(
+          'Maaf, perintah tersebut belum dikenali. Demi keamanan, silakan gunakan tombol dan formulir yang tersedia di aplikasi.'
+        );
+
+        return;
       }
 
-      // Jika tidak ada yang cocok — respons ramah kontekstual
-      playErrorSound();
-      speakText(
-        `Perintah "${rawText}" belum dikenali. Anda dapat mengatakan "bantuan", "saya di mana", "cek saldo", atau "buka transfer".`
-      );
+      // AI hanya dipakai ketika registry lokal gagal.
+      try {
+        speakText('Sebentar, saya sedang memahami perintah Anda.');
+
+        const result = await interpretVoiceIntent(rawText);
+
+        if (result?.command && runRegisteredCommand(result.command)) {
+          return;
+        }
+
+        playErrorSound();
+
+        speakText(
+          'Maaf, saya belum memahami maksud Anda. Silakan coba dengan kalimat lain.'
+        );
+      } catch (error) {
+        console.warn('AI intent fallback error:', error);
+
+        playErrorSound();
+
+        speakText(
+          'Perintah belum dikenali dan bantuan AI sedang tidak tersedia. Silakan gunakan perintah yang lebih sederhana.'
+        );
+      }
     },
     [buildContext, playErrorSound, speakText]
   );
 
-  // Mulai Mendengarkan
+  // Selalu gunakan callback terbaru.
+  executeCommandRef.current = executeCommandFromText;
+
+  // ----------------------------------------------------------
+  // PUSH-TO-TALK: MULAI MENDENGARKAN
+  // ----------------------------------------------------------
+
   const startListening = useCallback(() => {
     if (!isSupported) {
-      const err = 'Peramban Anda belum mendukung fitur Voice Command (Web Speech Recognition).';
+      const err =
+        'Peramban Anda belum mendukung fitur Voice Command. Silakan gunakan peramban yang mendukung pengenalan suara.';
+
       setErrorMessage(err);
       speakText(err);
       return;
     }
 
-    if (recognitionRef.current) {
-      try {
-        stopSpeech();
-        setTranscript('');
-        setErrorMessage('');
-        isProcessingRef.current = false;
-        recognitionRef.current.start();
-      } catch (err) {
-        console.warn('Recognition start error:', err);
-      }
+    if (!recognitionRef.current || recognitionActiveRef.current) {
+      return;
+    }
+
+    try {
+      stopSpeech();
+
+      setTranscript('');
+      setErrorMessage('');
+
+      pendingTranscriptRef.current = '';
+      shouldProcessRef.current = false;
+      isProcessingRef.current = false;
+
+      recognitionRef.current.start();
+    } catch (err) {
+      console.warn('Recognition start error:', err);
+
+      setErrorMessage(
+        'Mikrofon belum siap. Silakan tekan tombol Bicara kembali.'
+      );
     }
   }, [isSupported, stopSpeech, speakText]);
 
-  // Hentikan Mendengarkan
+  // ----------------------------------------------------------
+  // PUSH-TO-TALK: BERHENTI DAN PROSES UCAPAN
+  // ----------------------------------------------------------
+
   const stopListening = useCallback(() => {
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
+    // Pengguna telah melepas tombol Bicara.
+    shouldProcessRef.current = true;
+
+    if (recognitionActiveRef.current && recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        console.warn('Recognition stop error:', error);
+      }
+    } else {
+      // Menangani kondisi browser yang menghentikan
+      // recognition sebelum pengguna melepas tombol.
+      const text = pendingTranscriptRef.current;
+
+      pendingTranscriptRef.current = '';
+      shouldProcessRef.current = false;
+
+      setIsListening(false);
+
+      if (text) {
+        executeCommandRef.current?.(text);
+      }
     }
-    setIsListening(false);
   }, []);
+
+  // ----------------------------------------------------------
+  // DATA YANG DIKEMBALIKAN HOOK
+  // ----------------------------------------------------------
 
   return {
     isSupported,
