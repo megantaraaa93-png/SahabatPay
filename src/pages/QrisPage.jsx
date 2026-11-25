@@ -100,6 +100,16 @@ export default function QrisPage() {
     setIsCameraActive(false);
   };
 
+  // Sambungkan stream setelah panel kamera dirender. Ini penting di Audio Mode,
+  // karena tab kamera diaktifkan secara otomatis setelah rute QRIS terbuka.
+  useEffect(() => {
+    if (!isCameraActive || activeMethodTab !== 'camera' || !videoRef.current || !mediaStreamRef.current) return;
+    if (videoRef.current.srcObject !== mediaStreamRef.current) {
+      videoRef.current.srcObject = mediaStreamRef.current;
+      videoRef.current.play?.().catch(() => {});
+    }
+  }, [isCameraActive, activeMethodTab]);
+
   // Mengaktifkan kamera secara eksplisit hanya jika diminta pengguna
   const handleStartCamera = async () => {
     setCameraError(null);
