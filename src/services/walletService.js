@@ -18,6 +18,9 @@ const STORAGE_PREFIX = 'sahabatpay_wallet_';
 const JOURNAL_KEY = 'sahabatpay_tx_journal';
 const IDEMPOTENCY_KEY_PREFIX = 'sahabatpay_idemp_';
 
+// Batas maksimum (dalam rupiah) untuk transaksi demo prototype
+const MAX_DEMO_TRANSACTION_AMOUNT = 10_000_000; // Rp 10.000.000
+
 /**
  * Mendapatkan identifier unik pengguna untuk key penyimpanan wallet.
  * @param {Object} user
@@ -233,6 +236,25 @@ export function recoverPendingTransactions() {
         return;
       }
 
+      // JIKA INI TRANSAKSI TRANSFER SIMULASI EKSTERNAL
+      if (entry.type === 'external_demo_transfer') {
+        if (existsInSender) {
+          recordJournalEntry({
+            ...entry,
+            status: 'completed',
+            recoveredAt: new Date().toISOString(),
+          });
+          recoveredCount++;
+        } else {
+          recordJournalEntry({
+            ...entry,
+            status: 'failed',
+            failureReason: 'Proses transfer simulasi eksternal terhenti sebelum debit saldo',
+          });
+        }
+        return;
+      }
+
       // JIKA INI TRANSAKSI TRANSFER ANTAR-PENGGUNA
       const recipientUser = findRegisteredUser(entry.recipientPhone);
       if (!recipientUser) {
@@ -303,6 +325,21 @@ export function recoverPendingTransactions() {
    ========================================================================= */
 
 /**
+ * Memvalidasi bahwa nominal adalah bilangan bulat positif yang finite.
+ * @param {number} amount
+ * @returns {boolean}
+ */
+function isValidPositiveInteger(amount) {
+  return (
+    typeof amount === 'number' &&
+    Number.isFinite(amount) &&
+    !Number.isNaN(amount) &&
+    Number.isInteger(amount) &&
+    amount > 0
+  );
+}
+
+/**
  * Memproses transaksi Top Up:
  * - Menambah saldo
  * - Menambahkan catatan riwayat ke awal array transaksi
@@ -313,8 +350,12 @@ export function executeTopUp(user, amount, paymentMethod, details = {}) {
     return { success: false, error: 'Sesi pengguna tidak valid.' };
   }
 
-  if (typeof amount !== 'number' || amount <= 0) {
-    return { success: false, error: 'Nominal top up tidak valid.' };
+  if (!isValidPositiveInteger(amount)) {
+    return { success: false, error: 'Nominal top up tidak valid dan harus berupa bilangan bulat positif.' };
+  }
+  // Batas maksimum top‑up demo
+  if (amount > MAX_DEMO_TRANSACTION_AMOUNT) {
+    return { success: false, error: `Nominal top up tidak boleh melebihi Rp ${MAX_DEMO_TRANSACTION_AMOUNT.toLocaleString('id-ID')}.` };
   }
 
   const currentWallet = loadUserWallet(user);
@@ -381,19 +422,18 @@ export function executeTransfer(
   if (idempotencyKey) {
     const existing = checkIdempotency(idempotencyKey);
     if (existing) {
+      // Jika transaksi sudah selesai, kembalikan hasil cache (replay aman)
       if (existing.status === 'completed' && existing.cachedResult) {
-        // Kembalikan transaksi yang telah tersimpan sebelumnya tanpa memotong saldo kembali
         return {
           ...existing.cachedResult,
           isIdempotentReplay: true,
         };
       }
-      if (existing.status === 'failed') {
-        return {
-          success: false,
-          error: existing.failureReason || 'Transaksi dengan ID ini sebelumnya telah gagal.',
-        };
-      }
+      // Jika terdapat catatan idempotency yang belum selesai, blokir eksekusi ulang
+      return {
+        success: false,
+        error: 'Transaksi dengan idempotencyKey ini sedang diproses atau belum selesai. Silakan tunggu atau gunakan key lain.',
+      };
     }
   }
 
@@ -407,7 +447,152 @@ export function executeTransfer(
     return { success: false, error: 'Akun pengirim tidak terdaftar di sistem SahabatPay.' };
   }
 
-  // 3. Validasi Penerima (harus benar-benar ada di daftar terdaftar, bukan akun fiktif, bukan diri sendiri)
+  // 3. Tentukan jalur transfer: Internal vs Eksternal Simulasi
+  const recipientIdentifier =
+    typeof recipientInput === 'object' && recipientInput !== null
+      ? recipientInput.phone || recipientInput.email || ''
+      : recipientInput;
+  const registeredRecipient = findRegisteredUser(recipientIdentifier);
+
+  // Jalur B: Transfer eksternal simulasi
+  // Hanya aktif jika recipientInput.isDemo === true DAN nomor memang tidak ditemukan di findRegisteredUser()
+  const isExternalDemoTransfer =
+    typeof recipientInput === 'object' &&
+    recipientInput !== null &&
+    recipientInput.isDemo === true &&
+    !registeredRecipient;
+
+  if (isExternalDemoTransfer) {
+    const cleanRecipientPhone = String(recipientInput.phone || '').replace(/\D/g, '');
+    if (cleanRecipientPhone.length < 9) {
+      return { success: false, error: 'Nomor telepon penerima simulasi tidak valid.' };
+    }
+
+    const senderCleanPhone = String(verifiedSender.phone || '').replace(/\D/g, '');
+    if (senderCleanPhone && cleanRecipientPhone === senderCleanPhone) {
+      return { success: false, error: 'Anda tidak dapat mentransfer saldo ke akun Anda sendiri.' };
+    }
+
+    const recipientName = String(recipientInput.name || recipientInput.alias || '').trim();
+    if (!recipientName) {
+      return { success: false, error: 'Nama penerima simulasi wajib diisi.' };
+    }
+
+    if (
+      typeof amount !== 'number' ||
+      !Number.isFinite(amount) ||
+      Number.isNaN(amount) ||
+      !Number.isInteger(amount) ||
+      amount <= 0
+    ) {
+      return { success: false, error: 'Nominal transfer harus berupa bilangan bulat positif.' };
+    }
+
+    const senderWallet = loadUserWallet(verifiedSender);
+    if (senderWallet.balance < amount) {
+      return {
+        success: false,
+        error: `Saldo tidak mencukupi. Saldo Anda: Rp ${senderWallet.balance.toLocaleString('id-ID')}`,
+      };
+    }
+
+    const txnId = generateTransactionId('transfer');
+    const timestamp = new Date().toISOString();
+
+    const journalEntry = {
+      txnId,
+      type: 'external_demo_transfer',
+      idempotencyKey,
+      senderPhone: verifiedSender.phone,
+      senderName: verifiedSender.name,
+      recipientPhone: cleanRecipientPhone,
+      recipientName,
+      isDemo: true,
+      amount,
+      notes: notes || '-',
+      status: 'pending',
+      createdAt: timestamp,
+    };
+
+    recordJournalEntry(journalEntry);
+
+    const simulationNotice =
+      'Transaksi ini hanya simulasi prototype dan tidak mengirim uang ke rekening atau dompet eksternal.';
+
+    const senderTxn = {
+      id: txnId,
+      userId: senderWallet.userId,
+      type: 'transfer_out',
+      title: 'Transfer Simulasi Eksternal',
+      description: `Simulasi transfer ke ${recipientName}`,
+      amount,
+      status: 'success',
+      paymentMethod: 'Saldo SahabatPay',
+      createdAt: timestamp,
+      metadata: {
+        isDemo: true,
+        simulation: true,
+        simulationNotice,
+        recipientName,
+        recipientPhone: cleanRecipientPhone,
+        notes: notes || '-',
+        idempotencyKey,
+        previousBalance: senderWallet.balance,
+        newBalance: senderWallet.balance - amount,
+      },
+    };
+
+    const originalSenderRaw = localStorage.getItem(getWalletStorageKey(verifiedSender));
+
+    try {
+      const updatedSenderWallet = {
+        ...senderWallet,
+        balance: senderWallet.balance - amount,
+        transactions: [senderTxn, ...senderWallet.transactions],
+        updatedAt: timestamp,
+      };
+      saveUserWallet(verifiedSender, updatedSenderWallet);
+
+      const successResult = {
+        success: true,
+        newBalance: updatedSenderWallet.balance,
+        transaction: senderTxn,
+        isSimulation: true,
+        simulationNotice,
+      };
+
+      recordJournalEntry({
+        ...journalEntry,
+        status: 'completed',
+        cachedResult: successResult,
+      });
+
+      return successResult;
+    } catch (error) {
+      console.error('Terjadi kesalahan penyimpanan transaksi simulasi eksternal:', error);
+
+      try {
+        if (originalSenderRaw) {
+          localStorage.setItem(getWalletStorageKey(verifiedSender), originalSenderRaw);
+        }
+      } catch (rbErr) {
+        console.error('Gagal melakukan rollback simulasi eksternal:', rbErr);
+      }
+
+      recordJournalEntry({
+        ...journalEntry,
+        status: 'failed',
+        failureReason: error?.message || 'Gagal menyimpan transaksi simulasi ke media penyimpanan',
+      });
+
+      return {
+        success: false,
+        error: 'Gagal memproses transaksi simulasi transfer. Saldo Anda tidak berubah.',
+      };
+    }
+  }
+
+  // Jalur A: Transfer internal (harus benar-benar ada di daftar terdaftar, bukan diri sendiri)
   const recipientCheck = validateRecipient(verifiedSender, recipientInput);
   if (!recipientCheck.isValid || !recipientCheck.recipientUser) {
     return { success: false, error: recipientCheck.error || 'Akun penerima tidak valid.' };
@@ -415,9 +600,13 @@ export function executeTransfer(
 
   const recipientUser = recipientCheck.recipientUser;
 
-  // 4. Validasi Nominal
-  if (typeof amount !== 'number' || amount <= 0) {
-    return { success: false, error: 'Nominal transfer tidak valid.' };
+  // 4. Validasi Nominal (harus bilangan bulat positif finite)
+  if (!isValidPositiveInteger(amount)) {
+    return { success: false, error: 'Nominal transfer tidak valid dan harus berupa bilangan bulat positif.' };
+  }
+  // Batas maksimum transfer demo
+  if (amount > MAX_DEMO_TRANSACTION_AMOUNT) {
+    return { success: false, error: `Nominal transfer tidak boleh melebihi Rp ${MAX_DEMO_TRANSACTION_AMOUNT.toLocaleString('id-ID')}.` };
   }
 
   // 5. Muat dompet & validasi saldo pengirim

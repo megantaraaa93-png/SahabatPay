@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
   UserPlus,
@@ -25,7 +25,7 @@ import {
   deleteSavedRecipient,
   searchSavedRecipients,
 } from '../services/recipientService';
-import { getAllRegisteredUsers } from '../services/userService';
+import { getAllRegisteredUsers, findRegisteredUser } from '../services/userService';
 import { maskPhoneNumber } from '../utils/transactionUtils';
 import { formatTanggal } from '../utils/formatCurrency';
 import Button from '../components/common/Button';
@@ -35,6 +35,7 @@ import AudioGuideBar from '../components/a11y/AudioGuideBar';
 
 export default function RecipientsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isEasyMode, isAudioMode } = useA11y();
   const { user } = useAuth();
   const { isPlaying, speakText, stopSpeech, playSuccessSound, playErrorSound } = useAudioGuidance();
@@ -93,6 +94,14 @@ export default function RecipientsPage() {
     });
   }, [addPhoneQuery, allRegisteredUsers]);
 
+  const isExternalCandidate = useMemo(() => {
+    const cleanDigits = addPhoneQuery.replace(/\D/g, '');
+    const myDigits = String(user?.phone || '').replace(/\D/g, '');
+    if (cleanDigits.length < 9) return false;
+    if (myDigits && cleanDigits === myDigits) return false;
+    return !findRegisteredUser(addPhoneQuery);
+  }, [addPhoneQuery, user]);
+
   // ============================================================
   // HANDLERS — TAMBAH PENERIMA
   // ============================================================
@@ -100,13 +109,35 @@ export default function RecipientsPage() {
     setRecipients(getSavedRecipients(userId));
   }, [userId]);
 
+  // Sinkronisasi dengan Voice-Driven Add Recipient state machine
+  useEffect(() => {
+    if (location.state?.openAddModal !== undefined) {
+      setIsAddModalOpen(Boolean(location.state.openAddModal));
+    }
+    if (location.state?.voiceDraft) {
+      const { alias, phone } = location.state.voiceDraft;
+      if (alias !== undefined) setAddAlias(alias);
+      if (phone !== undefined) setAddPhoneQuery(phone);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    const handleUpdated = () => refreshRecipients();
+    window.addEventListener('sahabatpay:recipients-updated', handleUpdated);
+    return () => window.removeEventListener('sahabatpay:recipients-updated', handleUpdated);
+  }, [refreshRecipients]);
+
   const handleOpenAdd = () => {
     setAddPhoneQuery('');
     setAddAlias('');
     setAddError('');
     setAddSuccess('');
     setIsAddModalOpen(true);
-    if (isAudioMode) speakText('Modal tambah penerima dibuka. Ketik nama atau nomor telepon untuk mencari pengguna terdaftar.');
+    if (isAudioMode) {
+      speakText(
+        'Modal tambah penerima dibuka. Ketik nama atau nomor telepon untuk mencari pengguna terdaftar, atau masukkan nomor baru minimal sembilan digit beserta alias untuk menyimpannya sebagai penerima simulasi.'
+      );
+    }
   };
 
   const handleSelectFromRegistered = (regUser) => {
@@ -124,8 +155,19 @@ export default function RecipientsPage() {
     if (result.success) {
       playSuccessSound();
       refreshRecipients();
-      setAddSuccess(`${result.recipient.alias} berhasil ditambahkan ke daftar penerima.`);
-      if (isAudioMode) speakText(`Penerima ${result.recipient.alias} berhasil disimpan.`);
+      const isSim = Boolean(result.recipient.isDemo);
+      setAddSuccess(
+        isSim
+          ? `${result.recipient.alias} berhasil ditambahkan sebagai penerima simulasi (belum terdaftar di SahabatPay).`
+          : `${result.recipient.alias} berhasil ditambahkan ke daftar penerima.`
+      );
+      if (isAudioMode) {
+        speakText(
+          isSim
+            ? `Penerima ${result.recipient.alias} berhasil disimpan sebagai penerima simulasi karena nomor belum terdaftar.`
+            : `Penerima ${result.recipient.alias} berhasil disimpan.`
+        );
+      }
       setAddPhoneQuery('');
       setAddAlias('');
       setTimeout(() => {
@@ -300,9 +342,16 @@ export default function RecipientsPage() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className={`font-bold text-gray-900 truncate ${isEasyMode ? 'text-base' : 'text-sm'}`}>
-                      {recipient.alias}
-                    </p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className={`font-bold text-gray-900 truncate ${isEasyMode ? 'text-base' : 'text-sm'}`}>
+                        {recipient.alias}
+                      </p>
+                      {recipient.isDemo && (
+                        <span className="text-[10px] bg-amber-100 text-amber-800 border border-amber-200 font-semibold px-1.5 py-0.5 rounded">
+                          Penerima Simulasi
+                        </span>
+                      )}
+                    </div>
                     {recipient.alias !== recipient.name && recipient.name && (
                       <p className="text-xs text-gray-500 truncate">{recipient.name}</p>
                     )}
@@ -310,6 +359,11 @@ export default function RecipientsPage() {
                       <Phone size={11} aria-hidden="true" />
                       {maskPhoneNumber(recipient.phone)}
                     </p>
+                    {recipient.isDemo && (
+                      <p className="text-[11px] text-amber-700 font-medium mt-0.5">
+                        Belum terdaftar • Hanya simulasi (tidak mengirim uang riil)
+                      </p>
+                    )}
                   </div>
 
                   {/* Aksi */}
@@ -323,7 +377,11 @@ export default function RecipientsPage() {
                       className={`p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
                         isEasyMode ? 'p-3' : ''
                       }`}
-                      aria-label={`Transfer ke ${recipient.alias}`}
+                      aria-label={
+                        recipient.isDemo
+                          ? `Transfer simulasi ke ${recipient.alias} (Penerima Simulasi)`
+                          : `Transfer ke ${recipient.alias}`
+                      }
                     >
                       <Send size={isEasyMode ? 18 : 15} />
                     </button>
@@ -374,13 +432,13 @@ export default function RecipientsPage() {
         showDefaultFooter={false}
       >
         <form onSubmit={handleSubmitAdd} className="flex flex-col gap-4">
-          {/* Cari dari pengguna terdaftar */}
+          {/* Cari dari pengguna terdaftar atau masukkan nomor eksternal */}
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="add-phone-search"
               className={`font-semibold text-gray-800 ${isEasyMode ? 'text-base' : 'text-sm'}`}
             >
-              Cari Pengguna Terdaftar
+              Cari Pengguna Terdaftar / Nomor Telepon
             </label>
             <div className="relative">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
@@ -389,7 +447,7 @@ export default function RecipientsPage() {
                 type="text"
                 value={addPhoneQuery}
                 onChange={(e) => { setAddPhoneQuery(e.target.value); setAddError(''); }}
-                placeholder="Nama atau nomor telepon..."
+                placeholder="Nama pengguna atau nomor HP (min. 9 digit)..."
                 className={`w-full pl-9 pr-3 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-primary focus:border-primary transition-default ${
                   isEasyMode ? 'py-3.5 text-base min-h-[56px]' : 'py-2.5 text-sm'
                 }`}
@@ -402,8 +460,8 @@ export default function RecipientsPage() {
             {addPhoneQuery.trim().length >= 2 && (
               <div className="flex flex-col gap-1.5 max-h-44 overflow-y-auto rounded-xl border border-gray-200 bg-gray-50 p-1.5">
                 {filteredRegisteredUsers.length === 0 ? (
-                  <p className="text-xs text-gray-500 text-center py-2">
-                    Tidak ada pengguna terdaftar yang cocok.
+                  <p className="text-xs text-gray-600 text-center py-2 px-2">
+                    Tidak ada pengguna terdaftar yang cocok. Masukkan nomor HP minimal 9 digit dan isi alias di bawah untuk menyimpan sebagai penerima simulasi.
                   </p>
                 ) : (
                   filteredRegisteredUsers.slice(0, 8).map((u) => (
@@ -428,6 +486,21 @@ export default function RecipientsPage() {
                     </button>
                   ))
                 )}
+              </div>
+            )}
+
+            {/* Keterangan penerima eksternal simulasi */}
+            {isExternalCandidate && (
+              <div
+                className="p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs font-medium flex items-start gap-2"
+                role="status"
+                aria-live="polite"
+              >
+                <AlertCircle size={15} className="shrink-0 text-amber-700 mt-0.5" aria-hidden="true" />
+                <p>
+                  Nomor ini belum terdaftar di SahabatPay. Jika disimpan, kontak ini akan ditandai sebagai{' '}
+                  <strong>Penerima Simulasi</strong> (hanya untuk demonstrasi, tidak mengirim uang riil).
+                </p>
               </div>
             )}
           </div>

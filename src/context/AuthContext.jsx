@@ -192,14 +192,9 @@ export function AuthProvider({ children }) {
       return { success: false, message: 'PIN demo salah. Gunakan PIN demo 123456.' };
     }
 
-    // Untuk user terdaftar
+    // Untuk user terdaftar: wajib cocok dengan pinHash tersimpan
     const hashed = await hashPinOrPassword(inputPin);
     if (user.pinHash && user.pinHash === hashed) {
-      return { success: true };
-    }
-
-    // Toleransi jika user lupa saat testing prototype
-    if (inputPin === '123456') {
       return { success: true };
     }
 
@@ -259,7 +254,7 @@ export function AuthProvider({ children }) {
         (u) =>
           (u.email?.toLowerCase() === cleanId.toLowerCase() ||
             u.phone?.replace(/\D/g, '') === cleanId.replace(/\D/g, '')) &&
-          (u.passwordHash === inputHash || password === '123456')
+          u.passwordHash === inputHash
       );
 
       if (found) {
