@@ -39,6 +39,7 @@ import {
   validateMerchant,
   generateQrisPayload,
 } from '../services/merchantService';
+import { parseQrisStaticPayload } from '../services/qrisEmvcoService';
 
 // Pilihan nominal instan untuk pembayaran cepat
 const PRESET_QRIS_AMOUNTS = [15000, 25000, 50000, 100000, 250000];
@@ -82,7 +83,7 @@ export default function QrisPage() {
 
   const guideText = `Halaman Pembayaran QRIS SahabatPay. Saldo Anda saat ini adalah ${formatRupiah(
     balance
-  )}. Anda dapat memilih merchant demo dari daftar, memasukkan kode merchant secara manual, atau menyalakan kamera untuk simulasi pemindaian. Masukkan nominal pembayaran mulai seribu rupiah, lalu konfirmasi dengan PIN transaksi.`;
+  )}. Pada Mode Audio, kamera akan dibuka untuk membaca QRIS statis. SahabatPay akan membacakan nama merchant. QRIS statis tidak memuat nominal, jadi sebutkan nominal secara terpisah. Pembayaran QRIS nasional belum terhubung ke penyelenggara pembayaran, sehingga pemindaian QRIS eksternal hanya untuk membaca identitas merchant, bukan melakukan pembayaran.`;
 
   // Pembersihan kamera saat komponen unmount
   useEffect(() => {
@@ -119,12 +120,13 @@ export default function QrisPage() {
       mediaStreamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.play?.().catch(() => {});
       }
       setIsCameraActive(true);
-      setScanMessage('Kamera aktif. Arahkan ke QR demo SahabatPay.');
+      setScanMessage('Kamera aktif. Arahkan ke QRIS statis merchant atau QR demo SahabatPay.');
       scanLockedRef.current = false;
       if (isAudioMode) {
-        speakText('Kamera aktif. Arahkan ke kode QR merchant SahabatPay sampai terdengar konfirmasi.');
+        speakText('Kamera aktif. Arahkan bagian belakang ponsel ke QRIS statis merchant. Gerakkan perlahan. Saya akan membacakan nama merchant jika kode berhasil dikenali.');
       }
     } catch (err) {
       console.warn('Gagal mengakses kamera:', err);
@@ -135,6 +137,14 @@ export default function QrisPage() {
       if (isAudioMode) speakText(errMsg);
     }
   };
+
+  // Saat halaman QRIS dibuka melalui perintah suara, siapkan scanner otomatis.
+  // Browser tetap dapat meminta izin kamera kepada pengguna.
+  useEffect(() => {
+    if (!isAudioMode) return;
+    setActiveMethodTab('camera');
+    handleStartCamera();
+  }, [isAudioMode]);
 
   const handleStopCamera = () => {
     stopCameraStream();
@@ -172,13 +182,37 @@ export default function QrisPage() {
         const merchant = findMerchant(rawValue);
         if (merchant) {
           scanLockedRef.current = true;
-          setScanMessage('QR SahabatPay terdeteksi. Memeriksa merchant...');
+          setScanMessage('QR demo SahabatPay terdeteksi. Memeriksa merchant...');
           handleSelectMerchant(merchant);
           return;
         }
 
-        setScanMessage('QR terdeteksi, tetapi bukan QR demo SahabatPay yang dikenali. Coba QR lain atau masukkan kode secara manual.');
-        if (isAudioMode) speakText('Kode QR terdeteksi, tetapi belum dikenali sebagai QR demo SahabatPay.');
+        const staticQris = parseQrisStaticPayload(rawValue);
+        if (staticQris.isValid && staticQris.isStatic) {
+          scanLockedRef.current = true;
+          const externalMerchant = {
+            merchantId: `QRIS-STATIC-${staticQris.crc}`,
+            merchantCode: `QRIS-${staticQris.crc}`,
+            merchantName: staticQris.merchantName,
+            merchantCategory: `QRIS statis, kode kategori ${staticQris.mcc || 'tidak tersedia'}`,
+            merchantLocation: staticQris.city,
+            status: 'read_only',
+            logoInitial: 'QR',
+            isExternalQris: true,
+          };
+          setSelectedMerchant(externalMerchant);
+          setAmountInput('');
+          setErrorMessage('');
+          setScanMessage(`QRIS statis terbaca. Merchant ${staticQris.merchantName}, ${staticQris.city}.`);
+          stopCameraStream();
+          if (isAudioMode) {
+            speakText(`QRIS statis berhasil dibaca. Nama merchant ${staticQris.merchantName}. Kota ${staticQris.city}. Kode QR valid secara struktur dan CRC. QRIS statis tidak memuat nominal, silakan sebutkan nominal belanja Anda. Perhatian, pembayaran QRIS eksternal belum terhubung ke penyelenggara pembayaran dan belum dapat diselesaikan melalui SahabatPay.`);
+          }
+          return;
+        }
+
+        setScanMessage(staticQris.error || 'QR terdeteksi, tetapi formatnya belum dikenali.');
+        if (isAudioMode) speakText(staticQris.error || 'QR terdeteksi, tetapi formatnya belum dikenali.');
       } catch (error) {
         console.warn('QR scan error:', error);
       }
@@ -257,6 +291,14 @@ export default function QrisPage() {
   const handleOpenReview = (e) => {
     e.preventDefault();
     setErrorMessage('');
+
+    if (selectedMerchant?.isExternalQris) {
+      const err = `QRIS statis milik ${selectedMerchant.merchantName} berhasil dibaca, tetapi pembayaran QRIS nasional belum terhubung ke penyelenggara pembayaran. Tidak ada saldo yang dipotong. Gunakan metode pembayaran lain untuk transaksi sungguhan.`;
+      setErrorMessage(err);
+      playErrorSound();
+      if (isAudioMode) speakText(err);
+      return;
+    }
 
     if (!selectedMerchant) {
       const err = 'Silakan pilih atau scan merchant terlebih dahulu.';
@@ -691,10 +733,16 @@ export default function QrisPage() {
                 </p>
               </div>
             </div>
-            <span className="text-xs font-bold text-secondary-dark bg-green-100 border border-green-300 px-2 py-0.5 rounded-full shrink-0">
-              Terverifikasi ✓
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${selectedMerchant.isExternalQris ? 'text-amber-900 bg-amber-100 border border-amber-300' : 'text-secondary-dark bg-green-100 border border-green-300'}`}>
+              {selectedMerchant.isExternalQris ? 'QR terbaca, belum terhubung' : 'Merchant demo aktif'}
             </span>
           </div>
+
+          {selectedMerchant.isExternalQris && (
+            <div className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs font-medium text-amber-950" role="status" aria-live="polite">
+              QRIS statis berhasil dibaca dan nama merchant telah dikenali. Pembayaran ke QRIS eksternal belum tersedia karena SahabatPay belum terhubung ke penyelenggara pembayaran. Saldo tidak akan dipotong.
+            </div>
+          )}
 
           <form onSubmit={handleOpenReview} noValidate className="flex flex-col gap-4">
             {/* Input Nominal */}
