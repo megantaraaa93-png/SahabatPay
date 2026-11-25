@@ -57,6 +57,9 @@ export default function AudioModeInterface() {
   const suppressClickRef = useRef(false);
   const micSessionRef = useRef(false);
   const processingTimerRef = useRef(null);
+  const friendTapTimerRef = useRef(null);
+  const friendTapCountRef = useRef(0);
+  const friendLongPressRef = useRef(false);
 
   const pageLabel = PAGE_LABELS[currentPath] || 'Halaman SahabatPay';
 
@@ -99,6 +102,7 @@ export default function AudioModeInterface() {
       if (processingTimerRef.current) {
         clearTimeout(processingTimerRef.current);
       }
+      if (friendTapTimerRef.current) clearTimeout(friendTapTimerRef.current);
     };
   }, [transcript]);
 
@@ -156,41 +160,73 @@ export default function AudioModeInterface() {
     navigate('/', { replace: true });
   }, [stopSpeech, stopListening, setMode, navigate]);
 
-  // Panduan Tombol Sahabat
-  const handleFriendClick = () => {
-    if (suppressClickRef.current) {
-      suppressClickRef.current = false;
+  // Tombol Sahabat: ketukan tunggal/ganda/tiga kali dan tekan lama.
+  // Ketukan dihitung setelah jeda singkat agar satu ketukan tidak dieksekusi terlalu cepat.
+  const handleFriendTap = () => {
+    if (friendLongPressRef.current) {
+      friendLongPressRef.current = false;
       return;
     }
 
-    stopSpeech();
+    friendTapCountRef.current += 1;
+    if (friendTapTimerRef.current) clearTimeout(friendTapTimerRef.current);
 
-    const message = isSupported
-      ? `${pageLabel}. Anda sedang menggunakan Mode Audio SahabatPay. Tekan dan tahan tombol Bicara, ucapkan perintah, lalu lepaskan. Anda dapat mengatakan cek saldo, isi saldo, transfer, QRIS, atau riwayat transaksi. Tahan Tombol Sahabat untuk menghentikan suara. Tahan lebih lama untuk kembali ke pemilihan mode.`
-      : `${pageLabel}. Browser Anda belum mendukung pengenalan suara. Silakan gunakan Google Chrome atau Microsoft Edge.`;
+    friendTapTimerRef.current = setTimeout(() => {
+      const tapCount = friendTapCountRef.current;
+      friendTapCountRef.current = 0;
 
-    setAnnouncement(message);
-    setStatus('response');
-    speakText(message);
+      if (tapCount === 1) {
+        stopSpeech();
+        const message = isSupported
+          ? `${pageLabel}. Mode Audio aktif. Tekan dan tahan Bicara untuk memberi perintah. Anda dapat meminta cek saldo, transfer, QRIS, riwayat, atau bantuan.`
+          : 'Browser belum mendukung pengenalan suara. Gunakan Chrome atau Edge.';
+        setAnnouncement(message);
+        setStatus('response');
+        speakText(message);
+        return;
+      }
+
+      if (tapCount === 2) {
+        const message = 'Menu kendali Sahabat. Anda dapat mengatakan bantuan, ulangi instruksi, kembali, atau batalkan aktivitas. Tekan Bicara dan ucapkan pilihan Anda.';
+        setAnnouncement(message);
+        setStatus('response');
+        speakText(message);
+        return;
+      }
+
+      if (tapCount >= 3) {
+        stopSpeech();
+        if (micSessionRef.current) {
+          micSessionRef.current = false;
+          stopListening();
+        }
+        setStatus('ready');
+        setAnnouncement('Aktivitas suara sementara dibatalkan. Anda dapat melanjutkan dengan menekan Bicara.');
+        speakText('Aktivitas suara dibatalkan.');
+      }
+    }, 360);
   };
 
-  // Tekan Tombol Sahabat
   const handleFriendPointerDown = () => {
-    friendHoldRef.current = false;
-    suppressClickRef.current = false;
+    friendLongPressRef.current = false;
+    if (friendTapTimerRef.current) {
+      clearTimeout(friendTapTimerRef.current);
+      friendTapTimerRef.current = null;
+    }
 
-    // Tahan singkat: menghentikan suara
     friendTimerRef.current = setTimeout(() => {
-      friendHoldRef.current = true;
-      suppressClickRef.current = true;
+      friendLongPressRef.current = true;
+      friendTapCountRef.current = 0;
       stopAllAudio();
-    }, 700);
+      setAnnouncement('Suara dihentikan. Tahan lebih lama untuk kembali ke pemilihan mode.');
+      speakText('Suara dihentikan.');
+    }, 900);
 
-    // Tahan lebih lama: keluar ke pemilihan mode
     exitTimerRef.current = setTimeout(() => {
-      suppressClickRef.current = true;
+      friendLongPressRef.current = true;
+      friendTapCountRef.current = 0;
       exitAudioMode();
-    }, 2500);
+    }, 5000);
   };
 
   const handleFriendPointerUp = () => {
@@ -198,7 +234,6 @@ export default function AudioModeInterface() {
       clearTimeout(friendTimerRef.current);
       friendTimerRef.current = null;
     }
-
     if (exitTimerRef.current) {
       clearTimeout(exitTimerRef.current);
       exitTimerRef.current = null;
@@ -325,7 +360,7 @@ export default function AudioModeInterface() {
         {/* Tombol Sahabat */}
         <button
           type="button"
-          onClick={handleFriendClick}
+          onClick={handleFriendTap}
           onPointerDown={handleFriendPointerDown}
           onPointerUp={handleFriendPointerUp}
           onPointerLeave={handleFriendPointerUp}
