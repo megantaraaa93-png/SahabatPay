@@ -68,6 +68,7 @@ export default function QrisPage() {
   const [cameraError, setCameraError] = useState(null);
   const [scanMessage, setScanMessage] = useState('Arahkan kamera ke QR demo SahabatPay.');
   const scanLockedRef = useRef(false);
+  const lastRejectedQrRef = useRef('');
   const videoRef = useRef(null);
   const mediaStreamRef = useRef(null);
 
@@ -196,6 +197,9 @@ export default function QrisPage() {
           handleSelectMerchant(merchant);
           return;
         }
+
+        if (lastRejectedQrRef.current === rawValue) return;
+        lastRejectedQrRef.current = rawValue;
 
         const staticQris = parseQrisStaticPayload(rawValue);
         if (staticQris.isValid && staticQris.isStatic) {
