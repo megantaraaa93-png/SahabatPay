@@ -58,6 +58,7 @@ export default function AudioModeInterface() {
   const micSessionRef = useRef(false);
   const processingTimerRef = useRef(null);
   const friendTapTimerRef = useRef(null);
+  const friendBackTimerRef = useRef(null);
   const friendTapCountRef = useRef(0);
   const friendLongPressRef = useRef(false);
 
@@ -103,6 +104,7 @@ export default function AudioModeInterface() {
         clearTimeout(processingTimerRef.current);
       }
       if (friendTapTimerRef.current) clearTimeout(friendTapTimerRef.current);
+      if (friendBackTimerRef.current) clearTimeout(friendBackTimerRef.current);
     };
   }, [transcript]);
 
@@ -218,9 +220,17 @@ export default function AudioModeInterface() {
       friendLongPressRef.current = true;
       friendTapCountRef.current = 0;
       stopAllAudio();
-      setAnnouncement('Suara dihentikan. Tahan lebih lama untuk kembali ke pemilihan mode.');
-      speakText('Suara dihentikan.');
+      setAnnouncement('Suara dihentikan.');
     }, 900);
+
+    friendBackTimerRef.current = setTimeout(() => {
+      friendLongPressRef.current = true;
+      friendTapCountRef.current = 0;
+      stopSpeech();
+      stopListening();
+      micSessionRef.current = false;
+      navigate(-1);
+    }, 2500);
 
     exitTimerRef.current = setTimeout(() => {
       friendLongPressRef.current = true;
@@ -233,6 +243,10 @@ export default function AudioModeInterface() {
     if (friendTimerRef.current) {
       clearTimeout(friendTimerRef.current);
       friendTimerRef.current = null;
+    }
+    if (friendBackTimerRef.current) {
+      clearTimeout(friendBackTimerRef.current);
+      friendBackTimerRef.current = null;
     }
     if (exitTimerRef.current) {
       clearTimeout(exitTimerRef.current);
