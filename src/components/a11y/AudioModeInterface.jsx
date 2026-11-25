@@ -103,8 +103,6 @@ export default function AudioModeInterface() {
       if (processingTimerRef.current) {
         clearTimeout(processingTimerRef.current);
       }
-      if (friendTapTimerRef.current) clearTimeout(friendTapTimerRef.current);
-      if (friendBackTimerRef.current) clearTimeout(friendBackTimerRef.current);
     };
   }, [transcript]);
 
@@ -140,6 +138,8 @@ export default function AudioModeInterface() {
       if (processingTimerRef.current) {
         clearTimeout(processingTimerRef.current);
       }
+      if (friendTapTimerRef.current) clearTimeout(friendTapTimerRef.current);
+      if (friendBackTimerRef.current) clearTimeout(friendBackTimerRef.current);
     };
   }, []);
 
