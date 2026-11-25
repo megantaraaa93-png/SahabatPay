@@ -65,6 +65,8 @@ export default function QrisPage() {
   // Scanner Kamera State
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
+  const [scanMessage, setScanMessage] = useState('Arahkan kamera ke QR demo SahabatPay.');
+  const scanLockedRef = useRef(false);
   const videoRef = useRef(null);
   const mediaStreamRef = useRef(null);
 
@@ -119,8 +121,10 @@ export default function QrisPage() {
         videoRef.current.srcObject = stream;
       }
       setIsCameraActive(true);
+      setScanMessage('Kamera aktif. Arahkan ke QR demo SahabatPay.');
+      scanLockedRef.current = false;
       if (isAudioMode) {
-        speakText('Kamera aktif. Arahkan ke kode QR merchant, atau tekan tombol simulasi scan cepat di bawah video.');
+        speakText('Kamera aktif. Arahkan ke kode QR merchant SahabatPay sampai terdengar konfirmasi.');
       }
     } catch (err) {
       console.warn('Gagal mengakses kamera:', err);
@@ -137,7 +141,64 @@ export default function QrisPage() {
     if (isAudioMode) speakText('Kamera dinonaktifkan.');
   };
 
-  // Handler memilih merchant dari daftar atau simulasi scan
+  // Pemindaian QR langsung menggunakan BarcodeDetector bawaan browser.
+  // Hanya payload demo internal SahabatPay yang diterima oleh prototype ini.
+  useEffect(() => {
+    if (!isCameraActive || !videoRef.current) return undefined;
+
+    if (!('BarcodeDetector' in window)) {
+      const message = 'Browser ini belum mendukung deteksi QR otomatis. Gunakan Chrome Android terbaru atau masukkan kode merchant secara manual.';
+      setScanMessage(message);
+      if (isAudioMode) speakText(message);
+      return undefined;
+    }
+
+    let cancelled = false;
+    let timerId;
+    let detector;
+
+    const scan = async () => {
+      if (cancelled || scanLockedRef.current) return;
+      const video = videoRef.current;
+      if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+
+      try {
+        const codes = await detector.detect(video);
+        if (cancelled || !codes?.length) return;
+
+        const rawValue = String(codes[0]?.rawValue || '').trim();
+        if (!rawValue) return;
+
+        const merchant = findMerchant(rawValue);
+        if (merchant) {
+          scanLockedRef.current = true;
+          setScanMessage('QR SahabatPay terdeteksi. Memeriksa merchant...');
+          handleSelectMerchant(merchant);
+          return;
+        }
+
+        setScanMessage('QR terdeteksi, tetapi bukan QR demo SahabatPay yang dikenali. Coba QR lain atau masukkan kode secara manual.');
+        if (isAudioMode) speakText('Kode QR terdeteksi, tetapi belum dikenali sebagai QR demo SahabatPay.');
+      } catch (error) {
+        console.warn('QR scan error:', error);
+      }
+    };
+
+    try {
+      detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+      timerId = window.setInterval(scan, 450);
+    } catch (error) {
+      console.warn('BarcodeDetector initialization error:', error);
+      setScanMessage('Deteksi QR otomatis tidak dapat dimulai pada browser ini. Gunakan input kode manual.');
+    }
+
+    return () => {
+      cancelled = true;
+      if (timerId) window.clearInterval(timerId);
+    };
+  }, [isCameraActive]);
+
+  // Handler memilih merchant dari daftar atau hasil pemindaian QR
   const handleSelectMerchant = (merchant) => {
     setErrorMessage('');
     const validation = validateMerchant(merchant);
@@ -581,17 +642,12 @@ export default function QrisPage() {
                   {/* Viewfinder Overlay Frame */}
                   <div className="absolute inset-8 border-2 border-dashed border-white/80 rounded-xl pointer-events-none flex items-center justify-center">
                     <p className="text-white text-xs bg-black/60 px-3 py-1.5 rounded-full font-medium">
-                      Arahkan QR ke kotak ini
+                      {scanMessage}
                     </p>
                   </div>
                 </div>
 
-                {/* QRIS Audio Radar Component */}
-                <QrisAudioRadar
-                  isActive={isCameraActive}
-                  merchantName={demoMerchants[0]?.merchantName}
-                  onQrLocked={() => handleSelectMerchant(demoMerchants[0])}
-                />
+                <p className="text-sm text-center text-gray-600" role="status" aria-live="polite">{scanMessage}</p>
 
                 <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
                   <Button
@@ -605,14 +661,7 @@ export default function QrisPage() {
                     Tutup Kamera
                   </Button>
 
-                  {/* Tombol Simulasi Deteksi Otomatis untuk Kenyamanan Testing */}
-                  <button
-                    type="button"
-                    onClick={() => handleSelectMerchant(demoMerchants[0])}
-                    className="text-xs font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 py-2 px-3 rounded-xl transition-default"
-                  >
-                    ⚡ Simulasi QR Terdeteksi (Sumeleh Coffee)
-                  </button>
+
                 </div>
               </div>
             )}

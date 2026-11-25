@@ -141,7 +141,7 @@ async function callGroq(text) {
           },
         ],
         temperature: 0,
-        max_completion_tokens: 150,
+        max_completion_tokens: 512,
         response_format: {
           type: 'json_object',
         },
