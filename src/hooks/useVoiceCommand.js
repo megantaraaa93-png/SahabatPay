@@ -7,6 +7,8 @@ import { useWallet } from '../context/WalletContext';
 import { useAudioGuidance } from './useAudioGuidance';
 import { formatRupiah } from '../utils/formatCurrency';
 import { interpretVoiceIntent } from '../services/aiIntentService';
+import { addSavedRecipient } from '../services/recipientService';
+import { findRegisteredUser } from '../services/userService';
 
 // ============================================================
 // DAFTAR INFORMASI HALAMAN UNTUK RESPONS KONTEXTUAL
@@ -507,6 +509,47 @@ function buildCommandRegistry() {
 
     {
       patterns: [
+        /^sembunyikan\s+saldo$/,
+        /^tutup\s+saldo$/,
+      ],
+      handler: ({ navigate, currentPath, speakText, playSuccessSound }) => {
+        playSuccessSound();
+        if (currentPath !== '/dashboard') navigate('/dashboard');
+        window.dispatchEvent(new CustomEvent('sahabatpay:balance-visibility', { detail: { visible: false } }));
+        speakText('Saldo disembunyikan dari layar.');
+      },
+      description: '"Sembunyikan saldo"',
+    },
+
+    {
+      patterns: [
+        /^tampilkan\s+saldo$/,
+        /^perlihatkan\s+saldo$/,
+      ],
+      handler: ({ navigate, currentPath, balance, speakText, playSuccessSound }) => {
+        playSuccessSound();
+        if (currentPath !== '/dashboard') navigate('/dashboard');
+        window.dispatchEvent(new CustomEvent('sahabatpay:balance-visibility', { detail: { visible: true } }));
+        speakText(`Saldo ditampilkan. Saldo Anda ${formatRupiah(balance)}.`);
+      },
+      description: '"Tampilkan saldo"',
+    },
+
+    {
+      patterns: [
+        /^(buka\s+)?(sandbox|mode\s+latihan|tutorial|latihan\s+transaksi)$/,
+        /^saya\s+(ingin|mau)\s+(latihan|coba\s+tutorial)$/,
+      ],
+      handler: ({ navigate, speakText, playSuccessSound }) => {
+        playSuccessSound();
+        speakText('Membuka Mode Latihan Sandbox. Semua saldo dan transaksi di sini bersifat latihan dan terpisah dari dompet utama.');
+        navigate('/sandbox');
+      },
+      description: '"Buka sandbox" / "Mode latihan"',
+    },
+
+    {
+      patterns: [
         /^(kembali|balik)$/,
         /^kembali\s+ke\s+beranda$/,
         /^pergi\s+ke\s+beranda$/,
@@ -671,13 +714,16 @@ function buildCommandRegistry() {
     {
       patterns: [
         /^(aktifkan\s+)?(mode\s+suara|audio\s+guidance|audio\s+mode|mode\s+audio|panduan\s+suara)$/,
+        /^(saya\s+)?(tuna\s*netra|tunanetra)$/,
+        /^(pakai|gunakan|pilih)\s+(mode\s+)?(panduan\s+)?audio$/,
+        /^saya\s+(ingin|mau)\s+(menggunakan|pakai)\s+(suara|mode\s+audio)$/,
       ],
       handler: ({ setMode, speakText, playSuccessSound }) => {
         setMode('audio');
         playSuccessSound();
         speakText('Audio Guidance Mode diaktifkan. Panduan suara siap mendampingi Anda di setiap halaman.');
       },
-      description: '"Aktifkan panduan suara" / "Mode Audio"',
+      description: '"Aktifkan panduan suara" / "Saya tuna netra" / "Pakai mode panduan audio"',
     },
 
     {
@@ -863,6 +909,8 @@ export function useVoiceCommand() {
   const recognitionRef = useRef(null);
   const isProcessingRef = useRef(false);
   const executeCommandRef = useRef(null);
+  // State machine terstruktur untuk alur Voice-Driven Add Recipient
+  const recipientFlowRef = useRef({ step: 'idle', alias: '', phone: '' });
 
   // Ref khusus untuk push-to-talk.
   const pendingTranscriptRef = useRef('');
@@ -1032,6 +1080,98 @@ export function useVoiceCommand() {
       setLastCommand(rawText);
 
       const ctx = buildContext();
+
+      // 0A. State Machine: Voice-Driven Add Recipient
+      const flow = recipientFlowRef.current;
+      if (flow.step !== 'idle') {
+        if (/^(batal|batalkan|kembali|saya\s+berubah\s+pikiran|keluar)$/.test(clean)) {
+          recipientFlowRef.current = { step: 'idle', alias: '', phone: '' };
+          playSuccessSound();
+          speakText('Penambahan penerima baru dibatalkan.');
+          return;
+        }
+
+        if (flow.step === 'awaiting_name') {
+          const aliasText = String(rawText || '').trim().slice(0, 50);
+          if (aliasText.length < 2) {
+            playErrorSound();
+            speakText('Nama penerima terlalu pendek. Silakan sebutkan kembali nama atau alias penerima.');
+            return;
+          }
+          recipientFlowRef.current = { step: 'awaiting_phone', alias: aliasText, phone: '' };
+          playSuccessSound();
+          navigate('/recipients', { state: { openAddModal: true, voiceDraft: { alias: aliasText, phone: '' } } });
+          speakText(`Nama penerima ${aliasText}. Sekarang sebutkan nomor telepon penerima minimal sembilan digit.`);
+          return;
+        }
+
+        if (flow.step === 'awaiting_phone') {
+          const digits = String(rawText || '').replace(/\D/g, '');
+          if (digits.length < 9) {
+            playErrorSound();
+            speakText('Nomor telepon belum lengkap atau kurang dari sembilan digit. Silakan ulangi nomor telepon penerima.');
+            return;
+          }
+          const myDigits = String(ctx.user?.phone || '').replace(/\D/g, '');
+          if (myDigits && digits === myDigits) {
+            playErrorSound();
+            speakText('Anda tidak dapat menyimpan nomor telepon Anda sendiri. Silakan sebutkan nomor penerima lain.');
+            return;
+          }
+          const registered = findRegisteredUser(digits);
+          recipientFlowRef.current = { step: 'awaiting_confirm', alias: flow.alias, phone: digits };
+          playSuccessSound();
+          navigate('/recipients', { state: { openAddModal: true, voiceDraft: { alias: flow.alias, phone: digits } } });
+          const regNote = registered
+            ? `Nomor terdaftar atas nama ${registered.name}.`
+            : 'Nomor belum terdaftar di SahabatPay, sehingga akan disimpan sebagai penerima simulasi.';
+          speakText(
+            `Tinjau penerima baru: Nama ${flow.alias}, nomor ${digits.split('').join(' ')}. ${regNote} Katakan Simpan atau Setuju untuk menyimpan, atau Batal untuk membatalkan.`
+          );
+          return;
+        }
+
+        if (flow.step === 'awaiting_confirm') {
+          if (/^(simpan|ya|iya|setuju|lanjut|benar|oke|ok)$/.test(clean)) {
+            const ownerId = ctx.user?.id || ctx.user?.phone || '';
+            const res = addSavedRecipient(ownerId, ctx.user?.phone || '', flow.phone, flow.alias);
+            recipientFlowRef.current = { step: 'idle', alias: '', phone: '' };
+            if (res.success) {
+              playSuccessSound();
+              window.dispatchEvent(new CustomEvent('sahabatpay:recipients-updated'));
+              navigate('/recipients', { state: { openAddModal: false } });
+              const simMsg = res.recipient?.isDemo
+                ? ' sebagai penerima simulasi'
+                : '';
+              speakText(`Penerima ${res.recipient.alias} berhasil disimpan${simMsg}.`);
+            } else {
+              playErrorSound();
+              speakText(`Gagal menyimpan penerima: ${res.error}`);
+            }
+            return;
+          }
+          playErrorSound();
+          speakText('Katakan Simpan atau Setuju untuk menyimpan penerima, atau katakan Batal.');
+          return;
+        }
+      }
+
+      // Trigger Voice-Driven Add Recipient
+      if (
+        /^(saya\s+(mau|ingin)\s+)?(menambahkan|tambah|tambahkan|simpan)\s+(penerima|nomor\s+tujuan|nomor\s+baru)(\s+baru)?$/.test(clean) ||
+        /^tambah\s+penerima$/.test(clean)
+      ) {
+        if (!ctx.user) {
+          playErrorSound();
+          speakText('Silakan masuk ke akun terlebih dahulu untuk menambahkan penerima.');
+          return;
+        }
+        recipientFlowRef.current = { step: 'awaiting_name', alias: '', phone: '' };
+        playSuccessSound();
+        navigate('/recipients', { state: { openAddModal: true, voiceDraft: { alias: '', phone: '' } } });
+        speakText('Membuka formulir tambah penerima. Silakan sebutkan nama atau alias penerima yang ingin Anda simpan.');
+        return;
+      }
 
       // Cari command di registry lokal.
       const runRegisteredCommand = (commandText) => {

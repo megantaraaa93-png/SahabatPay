@@ -30,6 +30,7 @@ export default function CognitiveDelayShield({
   onCancel,
   enabled = true,
   countdownSeconds = 10,
+  warningMessage = '',
 }) {
   const { isEasyMode, isAudioMode } = useA11y();
   const { speakText, playTickSound, playSuccessSound } = useAudioGuidance();
@@ -43,6 +44,7 @@ export default function CognitiveDelayShield({
   useEffect(() => {
     if (!spokenRef.current && isAudioMode) {
       spokenRef.current = true;
+      const extraWarning = warningMessage ? ` Peringatan: ${warningMessage}` : '';
       const audioSummary = `Ringkasan ${transactionType}. Anda akan mengirim ${formatRupiah(
         amount
       )} kepada ${targetName}. Biaya admin ${formatRupiah(
@@ -51,14 +53,14 @@ export default function CognitiveDelayShield({
         totalDebit
       )}. Perkiraan sisa saldo Anda ${formatRupiah(
         remainingBalance
-      )}. ${
+      )}.${extraWarning} ${
         enabled
           ? `Silakan periksa kembali. Tombol konfirmasi tersedia dalam ${countdownSeconds} detik.`
           : 'Silakan periksa kembali rincian Anda.'
       }`;
       speakText(audioSummary);
     }
-  }, [transactionType, targetName, amount, adminFee, totalDebit, remainingBalance, isAudioMode, speakText, enabled, countdownSeconds]);
+  }, [transactionType, targetName, amount, adminFee, totalDebit, remainingBalance, isAudioMode, speakText, enabled, countdownSeconds, warningMessage]);
 
   // Timer Hitung Mundur 10 Detik
   useEffect(() => {

@@ -20,11 +20,12 @@ import Button from '../components/common/Button';
 import Card from '../components/common/Card';
 import Modal from '../components/common/Modal';
 import AudioGuideBar from '../components/a11y/AudioGuideBar';
+import GiantKeypad from '../components/a11y/GiantKeypad';
 import { formatRupiah, formatTanggal } from '../utils/formatCurrency';
 import { validateTransactionAmount } from '../utils/transactionUtils';
 
 // Pilihan nominal cepat
-const PRESET_AMOUNTS = [50000, 100000, 200000, 500000, 1000000];
+const PRESET_AMOUNTS = [10000, 20000, 50000, 100000, 200000, 500000];
 
 // Pilihan metode top up simulasi
 const PAYMENT_METHODS = [
@@ -304,6 +305,18 @@ export default function TopUpPage() {
             <p id="amount-hint" className="text-xs text-gray-600 font-medium mt-1">
               Minimal Top Up Rp 10.000 dan maksimal Rp 10.000.000 per transaksi.
             </p>
+            {isEasyMode && (
+              <div className="mt-3">
+                <GiantKeypad
+                  value={customAmountInput}
+                  onChange={(rawVal) => {
+                    setCustomAmountInput(rawVal);
+                    setErrorMessage('');
+                    setAmount(rawVal ? parseInt(rawVal, 10) : 0);
+                  }}
+                />
+              </div>
+            )}
           </div>
         </section>
 

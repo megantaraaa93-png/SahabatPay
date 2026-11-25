@@ -27,7 +27,10 @@ import AudioGuideBar from '../components/a11y/AudioGuideBar';
 import CognitiveDelayShield from '../components/a11y/CognitiveDelayShield';
 import PressAndHoldButton from '../components/a11y/PressAndHoldButton';
 import AccessiblePinInput from '../components/a11y/AccessiblePinInput';
+import GiantKeypad from '../components/a11y/GiantKeypad';
 import { formatRupiah, formatTanggal } from '../utils/formatCurrency';
+
+const PRESET_TRANSFER_AMOUNTS = [10000, 20000, 50000, 100000];
 import { validateTransactionAmount, maskPhoneNumber } from '../utils/transactionUtils';
 import { getSavedRecipients, addSavedRecipient, revalidateSavedRecipient } from '../services/recipientService';
 
@@ -80,10 +83,16 @@ export default function TransferPage() {
       setSelectedRecipient({
         name: preselected.alias || preselected.name,
         phone: preselected.phone,
+        isDemo: Boolean(preselected.isDemo),
       });
       setActiveTab('saved');
       if (isAudioMode) {
-        speakText(`Penerima ${preselected.alias || preselected.name} sudah dipilih. Silakan masukkan nominal transfer.`);
+        const demoNote = preselected.isDemo
+          ? ' Penerima ini adalah penerima simulasi yang belum terdaftar.'
+          : '';
+        speakText(
+          `Penerima ${preselected.alias || preselected.name} sudah dipilih.${demoNote} Silakan masukkan nominal transfer.`
+        );
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,10 +115,13 @@ export default function TransferPage() {
   // Handler memilih penerima
   const handleSelectRecipient = (r) => {
     const name = activeTab === 'saved' ? (r.alias || r.name) : r.name;
-    setSelectedRecipient({ name, phone: r.phone, isDemo: r.isDemo });
+    setSelectedRecipient({ name, phone: r.phone, isDemo: Boolean(r.isDemo) });
     setErrorMessage('');
     if (isAudioMode) {
-      speakText(`Penerima terpilih: ${name}, nomor ${maskPhoneNumber(r.phone)}.`);
+      const demoNote = r.isDemo
+        ? ' Penerima ini adalah penerima simulasi yang belum terdaftar.'
+        : '';
+      speakText(`Penerima terpilih: ${name}, nomor ${maskPhoneNumber(r.phone)}.${demoNote}`);
     }
   };
 
@@ -164,10 +176,13 @@ export default function TransferPage() {
 
     setIsReviewOpen(true);
     if (isAudioMode) {
+      const demoWarning = selectedRecipient.isDemo
+        ? ' Peringatan: Penerima ini belum terdaftar di SahabatPay. Transaksi ini hanya simulasi dan tidak mengirim uang ke nomor tujuan.'
+        : '';
       speakText(
         `Tinjau transfer sebesar ${formatRupiah(
           parsedAmount
-        )} kepada ${selectedRecipient.name}. Biaya admin nol rupiah. Periksa kembali sebelum memasukkan PIN.`
+        )} kepada ${selectedRecipient.name}. Biaya admin nol rupiah.${demoWarning} Periksa kembali sebelum memasukkan PIN.`
       );
     }
   };
@@ -181,7 +196,10 @@ export default function TransferPage() {
     setActiveIdempotencyKey(key);
     setIsPinModalOpen(true);
     if (isAudioMode) {
-      speakText('Masukkan enam digit PIN transaksi Anda untuk mengesahkan transfer ini.');
+      const demoPinWarning = selectedRecipient?.isDemo
+        ? 'Peringatan: penerima belum terdaftar dan transaksi ini hanya simulasi. '
+        : '';
+      speakText(`${demoPinWarning}Masukkan enam digit PIN transaksi Anda untuk mengesahkan transfer ini.`);
     }
   };
 
@@ -495,8 +513,13 @@ export default function TransferPage() {
                         {displayName?.charAt(0) || 'U'}
                       </div>
                       <div>
-                        <p className={`font-bold text-gray-900 ${isEasyMode ? 'text-base' : 'text-sm'}`}>
-                          {displayName}
+                        <p className={`font-bold text-gray-900 flex items-center gap-1.5 ${isEasyMode ? 'text-base' : 'text-sm'}`}>
+                          <span>{displayName}</span>
+                          {rec.isDemo && (
+                            <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-1.5 py-0.5 rounded">
+                              Akun Demo
+                            </span>
+                          )}
                         </p>
                         <p className={`text-gray-600 font-mono ${isEasyMode ? 'text-sm' : 'text-xs'}`}>
                           {maskPhoneNumber(rec.phone)}
@@ -539,6 +562,33 @@ export default function TransferPage() {
             2. Masukkan Nominal Transfer
           </h2>
 
+          {/* Preset Nominal Praktis */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3" role="group" aria-label="Pilihan nominal cepat transfer">
+            {PRESET_TRANSFER_AMOUNTS.map((preset) => {
+              const isSelected = parsedAmount === preset;
+              return (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => {
+                    setAmountInput(String(preset));
+                    setErrorMessage('');
+                    if (isAudioMode) speakText(`Nominal ${formatRupiah(preset)} dipilih.`);
+                  }}
+                  className={`rounded-xl border font-bold transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
+                    isEasyMode ? 'min-h-[64px] text-base px-3' : 'min-h-[44px] text-xs px-2.5'
+                  } ${
+                    isSelected
+                      ? 'bg-primary text-white border-primary shadow-sm'
+                      : 'bg-white text-gray-800 border-gray-300 hover:border-primary'
+                  }`}
+                >
+                  {formatRupiah(preset)}
+                </button>
+              );
+            })}
+          </div>
+
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-600 text-lg" aria-hidden="true">
               Rp
@@ -560,6 +610,19 @@ export default function TransferPage() {
           <p id="transfer-hint" className="text-xs text-gray-600 font-medium mt-1">
             Batas per transaksi: Rp 10.000 hingga Rp 10.000.000.
           </p>
+
+          {/* Giant Keypad di EasyFocus */}
+          {isEasyMode && (
+            <div className="mt-3">
+              <GiantKeypad
+                value={amountInput}
+                onChange={(val) => {
+                  setAmountInput(val);
+                  setErrorMessage('');
+                }}
+              />
+            </div>
+          )}
         </section>
 
         {/* SECTION 3: Catatan Opsional */}
@@ -633,20 +696,38 @@ export default function TransferPage() {
         showDefaultFooter={false}
       >
         {selectedRecipient && (
-          <CognitiveDelayShield
-            transactionType="Transfer Saldo"
-            targetName={selectedRecipient.name}
-            targetPhoneMasked={maskPhoneNumber(selectedRecipient.phone)}
-            amount={parsedAmount}
-            adminFee={0}
-            totalDebit={parsedAmount}
-            remainingBalance={balance - parsedAmount}
-            notes={notes}
-            onCancel={() => setIsReviewOpen(false)}
-            onConfirm={handleProceedToPin}
-            enabled={cognitiveDelayEnabled}
-            countdownSeconds={10}
-          />
+          <div className="flex flex-col gap-3">
+            {selectedRecipient.isDemo && (
+              <div
+                className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs font-medium flex items-start gap-2"
+                role="alert"
+              >
+                <ShieldAlert size={16} className="shrink-0 text-amber-700 mt-0.5" aria-hidden="true" />
+                <p className="flex-1">
+                  <strong>Penerima Belum Terdaftar (Simulasi):</strong> Nomor tujuan belum terdaftar di SahabatPay. Transaksi ini hanya simulasi dan tidak mengirim uang ke nomor atau rekening eksternal.
+                </p>
+              </div>
+            )}
+            <CognitiveDelayShield
+              transactionType={selectedRecipient.isDemo ? 'Transfer Simulasi Eksternal' : 'Transfer Saldo'}
+              targetName={selectedRecipient.name}
+              targetPhoneMasked={maskPhoneNumber(selectedRecipient.phone)}
+              amount={parsedAmount}
+              adminFee={0}
+              totalDebit={parsedAmount}
+              remainingBalance={balance - parsedAmount}
+              notes={notes}
+              onCancel={() => setIsReviewOpen(false)}
+              onConfirm={handleProceedToPin}
+              enabled={cognitiveDelayEnabled}
+              countdownSeconds={10}
+              warningMessage={
+                selectedRecipient.isDemo
+                  ? 'Penerima belum terdaftar di SahabatPay. Transaksi ini hanya simulasi dan tidak mengirim uang ke nomor tujuan.'
+                  : ''
+              }
+            />
+          </div>
         )}
       </Modal>
 
@@ -770,7 +851,9 @@ export default function TransferPage() {
             </div>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-2.5 text-[11px] text-yellow-800 font-medium text-left">
-              ℹ Ini adalah bukti transaksi simulasi prototype SahabatPay. Tidak ada aliran dana riil antar-rekening perbankan.
+              {transferResult.metadata?.isDemo || transferResult.metadata?.simulation
+                ? 'ℹ Simulasi Eksternal: Saldo lokal Anda telah dipotong untuk keperluan demonstrasi, tetapi uang tidak dikirim ke nomor tujuan atau rekening eksternal.'
+                : 'ℹ Ini adalah bukti transaksi simulasi prototype SahabatPay. Tidak ada aliran dana riil antar-rekening perbankan.'}
             </div>
 
             <Button

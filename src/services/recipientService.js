@@ -52,14 +52,16 @@ function saveToStorage(ownerUserId, recipients) {
  * Menambahkan penerima baru ke daftar tersimpan.
  *
  * Validasi yang dilakukan:
- * 1. Nomor telepon penerima harus terdaftar di sistem (cek via userService).
+ * 1. Nomor telepon minimal 9 digit.
  * 2. Penerima tidak boleh adalah pengirim sendiri.
  * 3. Tidak boleh ada nomor telepon yang sama sudah tersimpan.
+ * 4. Jika nomor ditemukan melalui findRegisteredUser(), simpan sebagai penerima internal (isDemo: false).
+ * 5. Jika nomor tidak ditemukan, izinkan penyimpanan sebagai penerima eksternal simulasi (isDemo: true) dengan alias wajib diisi.
  *
  * @param {string} ownerUserId - User ID pemilik daftar (pengirim aktif)
  * @param {string} ownerPhone - Nomor HP pemilik (untuk mencegah self-transfer)
  * @param {string} recipientPhone - Nomor HP penerima
- * @param {string} alias - Nama tampilan / alias penerima (bebas diisi pengirim)
+ * @param {string} alias - Nama tampilan / alias penerima
  * @returns {{ success: boolean, recipient?: Object, error?: string }}
  */
 export function addSavedRecipient(ownerUserId, ownerPhone, recipientPhone, alias) {
@@ -69,22 +71,13 @@ export function addSavedRecipient(ownerUserId, ownerPhone, recipientPhone, alias
 
   const cleanPhone = String(recipientPhone).replace(/\D/g, '');
   if (cleanPhone.length < 9) {
-    return { success: false, error: 'Nomor telepon penerima tidak valid.' };
+    return { success: false, error: 'Nomor telepon penerima tidak valid (minimal 9 digit).' };
   }
 
   // Validasi: penerima bukan diri sendiri
   const ownerClean = String(ownerPhone || '').replace(/\D/g, '');
   if (ownerClean && cleanPhone === ownerClean) {
     return { success: false, error: 'Anda tidak dapat menambahkan diri sendiri sebagai penerima.' };
-  }
-
-  // Validasi: penerima harus terdaftar di sistem
-  const registeredUser = findRegisteredUser(recipientPhone);
-  if (!registeredUser) {
-    return {
-      success: false,
-      error: 'Nomor telepon ini belum terdaftar di SahabatPay. Pastikan penerima sudah memiliki akun.',
-    };
   }
 
   const existing = getSavedRecipients(ownerUserId);
@@ -100,17 +93,41 @@ export function addSavedRecipient(ownerUserId, ownerPhone, recipientPhone, alias
     };
   }
 
-  const cleanAlias = String(alias || registeredUser.name || 'Penerima').trim().slice(0, 50);
+  const registeredUser = findRegisteredUser(recipientPhone);
 
-  const newRecipient = {
-    id: `rcpt-${ownerUserId}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-    ownerUserId,
-    alias: cleanAlias,
-    phone: registeredUser.phone, // Gunakan nomor dari data resmi terdaftar
-    name: registeredUser.name, // Nama resmi dari sistem
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  let newRecipient;
+  if (registeredUser) {
+    const cleanAlias = String(alias || registeredUser.name || 'Penerima').trim().slice(0, 50);
+    newRecipient = {
+      id: `rcpt-${ownerUserId}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      ownerUserId,
+      isDemo: false,
+      alias: cleanAlias,
+      phone: registeredUser.phone,
+      name: registeredUser.name,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  } else {
+    const cleanAlias = String(alias || '').trim().slice(0, 50);
+    if (!cleanAlias) {
+      return {
+        success: false,
+        error: 'Nama atau alias wajib diisi untuk menyimpan nomor penerima eksternal simulasi.',
+      };
+    }
+
+    newRecipient = {
+      id: `rcpt-${ownerUserId}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      ownerUserId,
+      isDemo: true,
+      alias: cleanAlias,
+      phone: cleanPhone,
+      name: cleanAlias,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
 
   const updated = [...existing, newRecipient];
   saveToStorage(ownerUserId, updated);

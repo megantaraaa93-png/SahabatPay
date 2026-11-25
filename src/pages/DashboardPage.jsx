@@ -11,8 +11,12 @@ import {
   LogOut,
   ShieldCheck,
   UserCheck,
+  AlertTriangle,
+  AlertCircle,
+  CheckCircle2,
+  GraduationCap,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useA11y } from '../context/A11yContext';
 import { useAuth } from '../context/AuthContext';
@@ -41,6 +45,16 @@ export default function DashboardPage() {
   const [showBalance, setShowBalance] = useState(true);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
+  useEffect(() => {
+    const handleVisibility = (e) => {
+      if (typeof e.detail?.visible === 'boolean') {
+        setShowBalance(e.detail.visible);
+      }
+    };
+    window.addEventListener('sahabatpay:balance-visibility', handleVisibility);
+    return () => window.removeEventListener('sahabatpay:balance-visibility', handleVisibility);
+  }, []);
+
   // Ambil jam saat ini untuk sapaan
   const hour = new Date().getHours();
   const greeting =
@@ -49,6 +63,32 @@ export default function DashboardPage() {
   const userName = user?.name || 'Pengguna SahabatPay';
   const userPhone = user?.phone || '0812-3456-7890';
   const isDemo = Boolean(user?.isDemo);
+
+  // Konfigurasi Color-Bar Balance System (batas jelas, bukan angka acak)
+  const BALANCE_THRESHOLDS = { CRITICAL: 50000, WARNING: 200000, TARGET: 500000 };
+  const balanceStatus =
+    balance < BALANCE_THRESHOLDS.CRITICAL
+      ? {
+          label: 'Saldo Kritis (< Rp 50.000)',
+          barColor: 'bg-red-500',
+          badgeClass: 'bg-red-900/60 text-red-100 border-red-300/40',
+          Icon: AlertCircle,
+        }
+      : balance < BALANCE_THRESHOLDS.WARNING
+      ? {
+          label: 'Mendekati Batas Minimum',
+          barColor: 'bg-amber-400',
+          badgeClass: 'bg-amber-900/60 text-amber-100 border-amber-300/40',
+          Icon: AlertTriangle,
+        }
+      : {
+          label: 'Saldo Aman',
+          barColor: 'bg-emerald-400',
+          badgeClass: 'bg-emerald-900/60 text-emerald-100 border-emerald-300/40',
+          Icon: CheckCircle2,
+        };
+  const balancePercent = Math.min(100, Math.max(8, Math.round((balance / BALANCE_THRESHOLDS.TARGET) * 100)));
+  const BalanceStatusIcon = balanceStatus.Icon;
 
   const guideText = `Beranda SahabatPay. ${greeting}, ${userName}. Saldo e-wallet Anda saat ini adalah ${formatRupiah(
     balance
@@ -139,45 +179,95 @@ export default function DashboardPage() {
         >
           {showBalance ? formatRupiah(balance) : '••••••••'}
         </p>
+
+        {/* Color-Bar Balance System (Multi-indikator: warna + ikon + label teks) */}
+        <div className="mt-3 pt-2.5 border-t border-white/15">
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${balanceStatus.badgeClass}`}>
+              <BalanceStatusIcon size={12} aria-hidden="true" />
+              <span>{balanceStatus.label}</span>
+            </span>
+            <span className="text-[11px] text-white/80 font-medium">
+              {balancePercent}%
+            </span>
+          </div>
+          <div className="w-full h-2 rounded-full bg-white/20 overflow-hidden" aria-hidden="true">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${balanceStatus.barColor}`}
+              style={{ width: `${balancePercent}%` }}
+            />
+          </div>
+        </div>
+
         <p className="text-white/90 text-xs mt-2 font-medium">Nomor akun: {userPhone}</p>
       </Card>
 
-      {/* ===== Aksi Cepat ===== */}
-      <section aria-label="Aksi cepat">
-        <h2 className="sr-only">Aksi Cepat</h2>
-        <div className={`grid gap-3 ${isEasyMode ? 'grid-cols-1' : 'grid-cols-3'}`}>
-          <QuickAction
-            icon={<Plus size={isEasyMode ? 28 : 22} />}
-            label="Top Up"
-            color="bg-secondary"
-            isEasy={isEasyMode}
-            onClick={() => {
-              stopSpeech();
-              navigate('/top-up');
-            }}
-          />
-          <QuickAction
-            icon={<Send size={isEasyMode ? 28 : 22} />}
-            label="Transfer"
-            color="bg-primary"
-            isEasy={isEasyMode}
-            onClick={() => {
-              stopSpeech();
-              navigate('/transfer');
-            }}
-          />
-          <QuickAction
-            icon={<QrCode size={isEasyMode ? 28 : 22} />}
-            label="QRIS"
-            color="bg-amber-500"
-            isEasy={isEasyMode}
-            onClick={() => {
-              stopSpeech();
-              navigate('/qris');
-            }}
-          />
+      {/* ===== Aksi Cepat (Mode Normal/Audio di atas; Mode EasyFocus dipindah ke Bottom Thumb-Zone) ===== */}
+      {!isEasyMode && (
+        <section aria-label="Aksi cepat">
+          <h2 className="sr-only">Aksi Cepat</h2>
+          <div className="grid gap-3 grid-cols-3">
+            <QuickAction
+              icon={<Plus size={22} />}
+              label="Top Up"
+              color="bg-secondary"
+              isEasy={false}
+              onClick={() => {
+                stopSpeech();
+                navigate('/top-up');
+              }}
+            />
+            <QuickAction
+              icon={<Send size={22} />}
+              label="Transfer"
+              color="bg-primary"
+              isEasy={false}
+              onClick={() => {
+                stopSpeech();
+                navigate('/transfer');
+              }}
+            />
+            <QuickAction
+              icon={<QrCode size={22} />}
+              label="QRIS"
+              color="bg-amber-500"
+              isEasy={false}
+              onClick={() => {
+                stopSpeech();
+                navigate('/qris');
+              }}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* ===== Mode Latihan Sandbox (Untuk Pengguna Baru & Pendamping) ===== */}
+      <Card
+        hoverable
+        onClick={() => {
+          stopSpeech();
+          navigate('/sandbox');
+        }}
+        className="bg-amber-50/80 border-amber-200"
+        aria-label="Buka Mode Latihan Sandbox untuk simulasi tanpa risiko"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-amber-500/15 p-2.5 rounded-xl text-amber-700" aria-hidden="true">
+              <GraduationCap size={20} />
+            </div>
+            <div>
+              <p className={`font-bold text-gray-900 ${isEasyMode ? 'text-lg' : 'text-sm'}`}>
+                Mode Latihan (Sandbox Tutorial)
+              </p>
+              <p className={`text-gray-600 ${isEasyMode ? 'text-base' : 'text-xs'}`}>
+                Latihan Top Up, Transfer, QRIS & PIN dengan saldo latihan terpisah
+              </p>
+            </div>
+          </div>
+          <ChevronRight size={18} className="text-amber-700 shrink-0" aria-hidden="true" />
         </div>
-      </section>
+      </Card>
 
       {/* ===== Financial Insight Mini ===== */}
       <Card
@@ -260,6 +350,52 @@ export default function DashboardPage() {
           </div>
         )}
       </section>
+
+      {/* ===== Bottom Thumb-Zone (Khusus EasyFocus: 1/3 bawah layar) ===== */}
+      {isEasyMode && (
+        <section
+          aria-label="Aksi utama mudah dijangkau jempol"
+          className="sticky bottom-16 md:bottom-4 z-20 bg-white/95 backdrop-blur-sm border-2 border-primary/20 rounded-3xl p-3 shadow-lg flex flex-col gap-2.5"
+        >
+          <p className="text-xs font-bold text-gray-600 uppercase tracking-wider px-1">
+            Aksi Utama (Jangkauan Jempol)
+          </p>
+          <div className="grid grid-cols-1 gap-2.5">
+            <QuickAction
+              icon={<QrCode size={28} />}
+              label="Scan QRIS"
+              color="bg-amber-500"
+              isEasy
+              onClick={() => {
+                stopSpeech();
+                navigate('/qris');
+              }}
+            />
+            <div className="grid grid-cols-2 gap-2.5">
+              <QuickAction
+                icon={<Send size={24} />}
+                label="Transfer"
+                color="bg-primary"
+                isEasy
+                onClick={() => {
+                  stopSpeech();
+                  navigate('/transfer');
+                }}
+              />
+              <QuickAction
+                icon={<Plus size={24} />}
+                label="Top Up"
+                color="bg-secondary"
+                isEasy
+                onClick={() => {
+                  stopSpeech();
+                  navigate('/top-up');
+                }}
+              />
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Modal Konfirmasi Logout */}
       <Modal

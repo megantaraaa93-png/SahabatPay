@@ -16,6 +16,7 @@ import AccessibilitySettingsPage from './pages/AccessibilitySettingsPage';
 import AccountSettingsPage from './pages/AccountSettingsPage';
 import AboutPage from './pages/AboutPage';
 import RecipientsPage from './pages/RecipientsPage';
+import SandboxPage from './pages/SandboxPage';
 import MainLayout from './layouts/MainLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import { VerificationGuard, SetupPinGuard } from './components/common/OnboardingGuard';
@@ -159,6 +160,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <RecipientsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/sandbox"
+              element={
+                <ProtectedRoute>
+                  <SandboxPage />
                 </ProtectedRoute>
               }
             />

@@ -16,7 +16,7 @@ function parseTlv(input) {
     const tag = input.slice(index, index + 2);
     const lengthText = input.slice(index + 2, index + 4);
 
-    if (!/^\\d{2}$/.test(tag) || !/^\\d{2}$/.test(lengthText)) {
+    if (!/^\d{2}$/.test(tag) || !/^\d{2}$/.test(lengthText)) {
       throw new Error('Format data QR tidak valid.');
     }
 
@@ -75,7 +75,7 @@ function hasQrisMerchantAccount(fields) {
 export function parseQrisStaticPayload(rawPayload) {
   const payload = String(rawPayload || '').trim();
 
-  if (!payload || payload.length > 2048 || !/^[\\x20-\\x7E]+$/.test(payload)) {
+  if (!payload || payload.length > 2048 || !/^[\x20-\x7E]+$/.test(payload)) {
     return { isValid: false, error: 'Data QR kosong atau tidak valid.' };
   }
 

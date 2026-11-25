@@ -16,6 +16,7 @@ const A11yContext = createContext(null);
 
 /** Opsi durasi Tremor Shield yang tersedia */
 export const TREMOR_DURATION_OPTIONS = [
+  { label: '0,5 detik (Cepat)', ms: 500 },
   { label: '1 detik', ms: 1000 },
   { label: '1,5 detik (Disarankan)', ms: 1500 },
   { label: '2 detik', ms: 2000 },
@@ -45,7 +46,7 @@ export function A11yProvider({ children }) {
       const saved = localStorage.getItem('sahabatpay_tremor_duration_ms');
       if (saved !== null) {
         const parsed = parseInt(saved, 10);
-        if ([1000, 1500, 2000].includes(parsed)) return parsed;
+        if ([500, 1000, 1500, 2000].includes(parsed)) return parsed;
       }
       return 1500;
     } catch {
@@ -85,7 +86,7 @@ export function A11yProvider({ children }) {
   };
 
   const setTremorDuration = (ms) => {
-    const valid = [1000, 1500, 2000].includes(ms) ? ms : 1500;
+    const valid = [500, 1000, 1500, 2000].includes(ms) ? ms : 1500;
     setTremorDurationState(valid);
     try {
       localStorage.setItem('sahabatpay_tremor_duration_ms', String(valid));

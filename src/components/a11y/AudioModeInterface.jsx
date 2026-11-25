@@ -1,10 +1,13 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Hand, Mic, MicOff } from 'lucide-react';
+import { Hand, Mic, MicOff, ArrowLeft, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVoiceCommand } from '../../hooks/useVoiceCommand';
 import { useAudioGuidance } from '../../hooks/useAudioGuidance';
 import { useA11y } from '../../context/A11yContext';
+import { useAuth } from '../../context/AuthContext';
+import { useWallet } from '../../context/WalletContext';
+import { formatRupiah } from '../../utils/formatCurrency';
 
 const PAGE_LABELS = {
   '/': 'Halaman pemilihan mode',
@@ -21,6 +24,7 @@ const PAGE_LABELS = {
   '/settings/accessibility': 'Pengaturan aksesibilitas',
   '/settings/account': 'Pengaturan akun',
   '/recipients': 'Daftar penerima',
+  '/sandbox': 'Mode Latihan Sandbox',
   '/about': 'Tentang SahabatPay',
 };
 
@@ -45,8 +49,11 @@ export default function AudioModeInterface() {
   } = useAudioGuidance();
 
   const { isAudioMode, setMode } = useA11y();
+  const { user, isAuthenticated } = useAuth();
+  const { balance } = useWallet();
 
   const [status, setStatus] = useState('ready');
+  const [isPinActive, setIsPinActive] = useState(false);
   const [announcement, setAnnouncement] = useState(
     'Mode audio aktif. Tekan dan tahan tombol Bicara untuk memberi perintah.'
   );
@@ -254,9 +261,24 @@ export default function AudioModeInterface() {
     }
   };
 
+  // Nonaktifkan mikrofon otomatis saat proses input PIN aktif
+  useEffect(() => {
+    const handlePinActive = (e) => {
+      const active = Boolean(e.detail?.active);
+      setIsPinActive(active);
+      if (active) {
+        micSessionRef.current = false;
+        stopListening();
+        setAnnouncement('Input PIN aktif. Mikrofon dinonaktifkan sementara demi keamanan.');
+      }
+    };
+    window.addEventListener('sahabatpay:pin-active', handlePinActive);
+    return () => window.removeEventListener('sahabatpay:pin-active', handlePinActive);
+  }, [stopListening]);
+
   // Mulai mendengarkan
   const handleMicStart = () => {
-    if (!isSupported || micSessionRef.current) return;
+    if (!isSupported || micSessionRef.current || isPinActive) return;
 
     micSessionRef.current = true;
 
@@ -338,40 +360,66 @@ export default function AudioModeInterface() {
 
   return (
     <main
-      className="fixed inset-0 z-[100] h-[100dvh] overflow-hidden bg-[#050816] text-white flex flex-col items-center px-4 py-3 sm:px-6"
+      className="fixed inset-0 z-[100] h-[100dvh] overflow-hidden bg-[#050816] text-white flex flex-col"
       aria-label="Antarmuka Mode Audio SahabatPay"
     >
-      {/* Header ringkas */}
-      <header className="shrink-0 text-center pt-1 pb-3">
-        <h1 className="text-2xl sm:text-3xl font-black tracking-wide">
-          SAHABATPAY
-        </h1>
-
-        <p className="text-slate-400 text-sm mt-1">
-          Mode Audio
-        </p>
-      </header>
-
-      {/* Status */}
+      {/* LAYAR ATAS (50%): Zona Informasi & Tombol Sahabat */}
       <section
-        role="status"
-        aria-live="assertive"
-        aria-atomic="true"
-        className={`w-full max-w-xl shrink-0 rounded-2xl border px-4 py-3 text-center transition-colors ${statusColors[status]}`}
+        aria-label="Zona Informasi Mode Audio"
+        className="h-1/2 min-h-0 w-full max-w-xl mx-auto px-4 pt-3 pb-2 sm:px-6 flex flex-col gap-2.5"
       >
-        <p className="text-base sm:text-lg font-black">
-          {statusLabels[status]}
-        </p>
+        <header className="shrink-0 flex items-center justify-between gap-2">
+          <div>
+            <h1 className="text-lg sm:text-xl font-black tracking-wide">
+              SAHABATPAY <span className="text-amber-300 font-bold text-xs sm:text-sm">• Mode Audio</span>
+            </h1>
+            <p className="text-slate-300 text-xs sm:text-sm font-semibold">
+              {pageLabel}
+              {isAuthenticated && user ? ` • Saldo: ${formatRupiah(balance)}` : ''}
+            </p>
+          </div>
 
-        <p className="text-sm sm:text-base mt-1 leading-snug">
-          {announcement}
-        </p>
-      </section>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                stopSpeech();
+                navigate(-1);
+              }}
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-bold flex items-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+              aria-label="Kembali ke halaman sebelumnya"
+            >
+              <ArrowLeft size={14} aria-hidden="true" />
+              <span className="hidden sm:inline">Kembali</span>
+            </button>
+            <button
+              type="button"
+              onClick={exitAudioMode}
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-bold flex items-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+              aria-label="Keluar dari Mode Audio"
+            >
+              <LogOut size={14} aria-hidden="true" />
+              <span className="hidden sm:inline">Ganti Mode</span>
+            </button>
+          </div>
+        </header>
 
-      {/* Hanya dua tombol utama */}
-      <div className="w-full max-w-xl flex-1 min-h-0 flex flex-col gap-3 py-4">
+        {/* Status & Pengumuman Kontekstual */}
+        <div
+          role="status"
+          aria-live="assertive"
+          aria-atomic="true"
+          className={`w-full shrink-0 rounded-2xl border px-4 py-2.5 text-center transition-colors ${statusColors[status]}`}
+        >
+          <p className="text-sm sm:text-base font-black">
+            {statusLabels[status]}
+          </p>
+          <p className="text-xs sm:text-sm mt-0.5 leading-snug line-clamp-2">
+            {announcement}
+          </p>
+        </div>
 
-        {/* Tombol Sahabat */}
+        {/* Tombol Sahabat (Zona Atas) */}
         <button
           type="button"
           onClick={handleFriendTap}
@@ -379,25 +427,24 @@ export default function AudioModeInterface() {
           onPointerUp={handleFriendPointerUp}
           onPointerLeave={handleFriendPointerUp}
           onPointerCancel={handleFriendPointerUp}
-          className="flex-1 min-h-0 w-full rounded-3xl bg-[#C62828] hover:bg-[#B71C1C] active:bg-[#8E1717] border-4 border-[#FF8A80] shadow-lg flex flex-col items-center justify-center gap-2 focus-visible:outline focus-visible:outline-4 focus-visible:outline-white focus-visible:outline-offset-2 transition-colors select-none touch-manipulation"
+          className="flex-1 min-h-0 w-full rounded-3xl bg-[#C62828] hover:bg-[#B71C1C] active:bg-[#8E1717] border-4 border-[#FF8A80] shadow-lg flex flex-col items-center justify-center gap-1.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-white focus-visible:outline-offset-2 transition-colors select-none touch-manipulation"
           aria-label="Tombol Sahabat. Tekan untuk mendengar panduan. Tahan untuk menghentikan suara. Tahan lebih lama untuk kembali ke pemilihan mode."
         >
-          <Hand
-            size={48}
-            strokeWidth={2.5}
-            aria-hidden="true"
-          />
-
-          <span className="text-xl sm:text-2xl font-black text-center px-2">
+          <Hand size={40} strokeWidth={2.5} aria-hidden="true" />
+          <span className="text-lg sm:text-2xl font-black text-center px-2">
             TOMBOL SAHABAT
           </span>
-
           <span className="text-red-100 text-xs sm:text-sm text-center px-3">
-            Tekan untuk bantuan
+            Ketuk 1x: Panduan • 2x: Menu • Tahan: Hentikan Suara
           </span>
         </button>
+      </section>
 
-        {/* Tombol Bicara */}
+      {/* LAYAR BAWAH (50%): Zona Press & Hold Voice Command */}
+      <section
+        aria-label="Zona Perintah Suara Tekan dan Tahan"
+        className="h-1/2 min-h-0 w-full max-w-xl mx-auto px-4 pt-2 pb-3 sm:px-6 flex flex-col gap-2"
+      >
         <button
           type="button"
           onPointerDown={handleMicStart}
@@ -407,7 +454,7 @@ export default function AudioModeInterface() {
           onKeyDown={handleMicKeyDown}
           onKeyUp={handleMicKeyUp}
           onBlur={handleMicStop}
-          disabled={!isSupported}
+          disabled={!isSupported || isPinActive}
           className={`flex-1 min-h-0 w-full rounded-3xl border-4 shadow-lg flex flex-col items-center justify-center gap-2 focus-visible:outline focus-visible:outline-4 focus-visible:outline-white focus-visible:outline-offset-2 transition-colors select-none touch-manipulation ${
             isListening
               ? 'bg-[#B71C1C] border-red-300 animate-pulse'
@@ -430,17 +477,18 @@ export default function AudioModeInterface() {
           </span>
 
           <span className="text-green-100 text-xs sm:text-sm text-center px-3">
-            {isListening
-              ? 'Lepaskan untuk memproses'
-              : 'Tekan dan tahan untuk berbicara'}
+            {!isSupported
+              ? 'Browser tidak mendukung pengenalan suara. Gunakan tombol Kembali atau Ganti Mode di atas.'
+              : isListening
+              ? 'Lepaskan untuk memproses perintah'
+              : 'Tekan dan tahan area ini untuk berbicara'}
           </span>
         </button>
-      </div>
 
-      {/* Petunjuk ringkas, bukan tombol tambahan */}
-      <footer className="shrink-0 pb-1 text-center text-slate-500 text-[10px] sm:text-xs">
-        Tahan Sahabat 2,5 detik untuk kembali ke pemilihan mode
-      </footer>
+        <footer className="shrink-0 text-center text-slate-400 text-[10px] sm:text-xs">
+          Tahan Sahabat 2,5 detik: Kembali • 5 detik: Pilih Mode
+        </footer>
+      </section>
     </main>
   );
 }

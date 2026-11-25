@@ -36,13 +36,22 @@ export default function PressAndHoldButton({
   const holdStartPosRef = useRef({ x: 0, y: 0 });
 
   // Label durasi manusiawi untuk tampilan & audio
-  const durationLabel = holdDurationMs >= 2000 ? '2d' : holdDurationMs >= 1500 ? '1,5d' : '1d';
+  const durationLabel =
+    holdDurationMs >= 2000
+      ? '2d'
+      : holdDurationMs >= 1500
+      ? '1,5d'
+      : holdDurationMs >= 1000
+      ? '1d'
+      : '0,5d';
   const durationSpoken =
     holdDurationMs >= 2000
       ? 'dua detik'
       : holdDurationMs >= 1500
       ? 'satu setengah detik'
-      : 'satu detik';
+      : holdDurationMs >= 1000
+      ? 'satu detik'
+      : 'setengah detik';
 
   // Batalkan penahanan (lepas terlalu cepat / pointer bergeser / cancel)
   const handleCancelHold = useCallback(() => {
@@ -66,6 +75,9 @@ export default function PressAndHoldButton({
     setProgress(100);
     setIsCompleted(true);
     playSuccessSound();
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(40);
+    }
 
     if (onHoldComplete) {
       onHoldComplete();

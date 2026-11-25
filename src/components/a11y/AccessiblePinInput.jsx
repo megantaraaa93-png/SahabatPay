@@ -38,6 +38,14 @@ export default function AccessiblePinInput({
 
   const isCompleted = pinDigits.length === pinLength;
 
+  // Nonaktifkan mikrofon saat komponen input PIN aktif demi privasi
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('sahabatpay:pin-active', { detail: { active: true } }));
+    return () => {
+      window.dispatchEvent(new CustomEvent('sahabatpay:pin-active', { detail: { active: false } }));
+    };
+  }, []);
+
   // Naikkan angka (0 -> 1 -> ... -> 9 -> 0)
   const handleStepUp = useCallback(() => {
     if (disabled || isCompleted) return;
