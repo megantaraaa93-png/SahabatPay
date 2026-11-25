@@ -173,6 +173,7 @@ async function callGroq(text) {
 }
 
 
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -183,6 +184,9 @@ export default async function handler(req, res) {
   if (!text || text.length > 300) {
     return res.status(400).json({ error: 'Perintah tidak valid.' });
   }
+
+  let geminiFailure = 'Belum dicoba';
+  let groqFailure = 'Belum dicoba';
 
   console.log('[Assistant] Gemini key:', Boolean(process.env.GEMINI_API_KEY));
   console.log('[Assistant] Groq key:', Boolean(process.env.GROQ_API_KEY));
@@ -198,8 +202,9 @@ export default async function handler(req, res) {
       intent,
       provider: 'gemini',
     });
-  } catch (geminiError) {
-    console.warn('[Assistant] Gemini gagal:', geminiError.message);
+  } catch (error) {
+    geminiFailure = error.message;
+    console.error('[Assistant] Gemini gagal:', geminiFailure);
   }
 
   try {
@@ -211,11 +216,16 @@ export default async function handler(req, res) {
       intent,
       provider: 'groq',
     });
-  } catch (groqError) {
-    console.error('[Assistant] Groq gagal:', groqError.message);
+  } catch (error) {
+    groqFailure = error.message;
+    console.error('[Assistant] Groq gagal:', groqFailure);
 
     return res.status(502).json({
       error: 'AI sementara tidak tersedia.',
+      diagnostics: {
+        gemini: geminiFailure,
+        groq: groqFailure,
+      },
     });
   }
 }
