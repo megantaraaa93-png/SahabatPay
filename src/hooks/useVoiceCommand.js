@@ -9,6 +9,7 @@ import { formatRupiah } from '../utils/formatCurrency';
 import { interpretVoiceIntent } from '../services/aiIntentService';
 import { addSavedRecipient } from '../services/recipientService';
 import { findRegisteredUser } from '../services/userService';
+import { useVoiceTransaction } from '../context/VoiceTransactionContext';
 
 // ============================================================
 // DAFTAR INFORMASI HALAMAN UNTUK RESPONS KONTEXTUAL
@@ -891,6 +892,7 @@ export function useVoiceCommand() {
   } = useA11y();
 
   const { balance, transactions } = useWallet();
+  const { handleVoiceInput: handleTransactionVoiceInput } = useVoiceTransaction();
 
   const {
     speakText,
@@ -1078,6 +1080,15 @@ export function useVoiceCommand() {
       const clean = normalizeVoiceText(rawText);
 
       setLastCommand(rawText);
+
+      // 0. Prioritaskan Voice Transaction Orchestrator (Transfer & Top Up langsung)
+      try {
+        if (handleTransactionVoiceInput && handleTransactionVoiceInput(rawText)) {
+          return;
+        }
+      } catch (txErr) {
+        console.warn('Voice transaction orchestrator handling error:', txErr);
+      }
 
       const ctx = buildContext();
 

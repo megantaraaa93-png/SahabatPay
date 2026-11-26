@@ -4,9 +4,10 @@ import { WifiOff } from 'lucide-react';
 import BottomNav from '../components/common/BottomNav';
 
 /**
- * Layout utama dengan navigasi bawah (mobile) atau sidebar (desktop).
- * Prototype banner dan status offline selalu tampil di atas.
- * Catatan: VoiceCommandButton kini diletakkan di App.jsx agar aktif global di seluruh aplikasi.
+ * Layout utama SahabatPay.
+ * - Desktop: sidebar kiri + main content area
+ * - Mobile:  full content + fixed bottom nav
+ * - Banner prototype + status offline
  */
 export default function MainLayout() {
   const [isOnline, setIsOnline] = useState(
@@ -14,57 +15,57 @@ export default function MainLayout() {
   );
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
+    const handleOnline  = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
+    window.addEventListener('online',  handleOnline);
     window.addEventListener('offline', handleOffline);
     return () => {
-      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('online',  handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col md:flex-row relative">
-      {/* Sidebar navigasi — desktop */}
-      <div className="hidden md:flex">
+    <div className="min-h-screen bg-brand-cream flex flex-col md:flex-row relative">
+      {/* Sidebar — desktop only */}
+      <div className="hidden md:flex relative">
         <BottomNav />
       </div>
 
-      {/* Konten utama */}
-      <main className="flex-1 pb-20 md:pb-0">
-        {/* Banner prototype */}
+      {/* Main content area */}
+      <main className="flex-1 pb-20 md:pb-0 min-w-0">
+        {/* Prototype banner */}
         <div
-          className="bg-yellow-50 border-b border-yellow-200 px-4 py-1.5 text-center"
+          className="bg-brand-forest/8 border-b border-brand-forest/15 px-4 py-1.5 text-center"
           role="status"
           aria-label="Peringatan: Ini adalah prototype simulasi"
         >
-          <p className="text-xs text-yellow-700 font-medium">
+          <p className="text-xs text-brand-forest font-semibold">
             ⚠ PROTOTYPE SIMULASI — Tidak menggunakan uang nyata
           </p>
         </div>
 
-        {/* Banner status offline */}
+        {/* Offline banner */}
         {!isOnline && (
           <div
-            className="bg-red-50 border-b border-red-200 px-4 py-2 text-center flex items-center justify-center gap-2"
+            className="bg-brand-coral/10 border-b border-brand-coral/30 px-4 py-2 text-center flex items-center justify-center gap-2"
             role="alert"
             aria-live="assertive"
           >
-            <WifiOff size={14} className="text-red-700 shrink-0" aria-hidden="true" />
-            <p className="text-xs text-red-800 font-semibold">
+            <WifiOff size={14} className="text-brand-coral shrink-0" aria-hidden="true" />
+            <p className="text-xs text-brand-coral font-semibold">
               Anda sedang offline. AI Assistant dan layanan server memerlukan koneksi internet.
             </p>
           </div>
         )}
 
-        <div className="max-w-2xl mx-auto px-4 py-4 md:py-6">
+        {/* Page content */}
+        <div className="max-w-2xl mx-auto px-4 py-5 md:py-7">
           <Outlet />
         </div>
       </main>
 
-      {/* Bottom nav — mobile */}
+      {/* Bottom nav — mobile only */}
       <div className="md:hidden">
         <BottomNav />
       </div>

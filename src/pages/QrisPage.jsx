@@ -457,8 +457,8 @@ export default function QrisPage() {
             stopSpeech();
             navigate('/dashboard');
           }}
-          className={`inline-flex items-center gap-2 font-semibold text-gray-700 hover:text-primary transition-default rounded-xl border border-gray-300 bg-white p-2 focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
-            isEasyMode ? 'min-h-[52px] px-4 text-base' : 'text-sm px-3'
+          className={`inline-flex items-center gap-2 font-semibold text-brand-charcoal hover:text-brand-forest transition-default rounded-xl border border-brand-border bg-white shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+            isEasyMode ? 'min-h-[64px] px-5 text-base' : 'min-h-[42px] text-sm px-3.5'
           }`}
           aria-label="Kembali ke Beranda"
         >
@@ -466,37 +466,37 @@ export default function QrisPage() {
           <span>Kembali</span>
         </button>
 
-        <span className="text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 py-1 px-3 rounded-full flex items-center gap-1.5">
+        <span className="sp-badge-forest py-1.5 px-3">
           <QrCode size={14} aria-hidden="true" />
-          <span>QRIS Simulasi</span>
+          <span>QRIS SahabatPay</span>
         </span>
       </div>
 
       {/* Kartu Saldo Tersedia */}
-      <Card className="!p-5 bg-gradient-to-r from-amber-600 to-amber-500 text-white !border-0 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white" aria-hidden="true">
+      <div className="balance-card rounded-2xl p-5 text-white shadow-balance">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center text-white" aria-hidden="true">
             <Wallet size={24} />
           </div>
           <div>
-            <p className="text-xs text-white/90 font-medium">Saldo SahabatPay Tersedia</p>
-            <p className="text-2xl font-extrabold tracking-tight" aria-live="polite">
+            <p className="text-xs text-white/75 font-medium">Saldo SahabatPay Tersedia</p>
+            <p className="text-2xl font-extrabold tracking-tight tabular-nums mt-0.5" aria-live="polite">
               {formatRupiah(balance)}
             </p>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* ============================================================ */}
       {/* SECTION 1: Pilih Metode Input Merchant */}
       {/* ============================================================ */}
       <section aria-labelledby="heading-qris-method">
-        <h2 id="heading-qris-method" className={`font-bold text-gray-900 mb-2.5 ${isEasyMode ? 'text-xl' : 'text-base'}`}>
+        <h2 id="heading-qris-method" className={`font-bold text-brand-charcoal mb-2.5 ${isEasyMode ? 'text-xl' : 'text-base'}`}>
           1. Pilih Cara Pembayaran QRIS
         </h2>
 
         {/* Tab Selector */}
-        <div className="grid grid-cols-3 gap-1.5 p-1 bg-gray-100 rounded-2xl border border-gray-200" role="tablist">
+        <div className="grid grid-cols-3 gap-1.5 p-1 bg-white rounded-2xl border border-brand-border shadow-card" role="tablist">
           <button
             type="button"
             role="tab"
@@ -505,16 +505,16 @@ export default function QrisPage() {
               stopCameraStream();
               setActiveMethodTab('list');
             }}
-            className={`py-2.5 px-3 rounded-xl font-bold transition-default flex items-center justify-center gap-1.5 text-xs sm:text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-              isEasyMode ? 'min-h-[56px] text-base' : ''
+            className={`py-2.5 px-2.5 rounded-xl font-bold transition-default flex items-center justify-center gap-1.5 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+              isEasyMode ? 'min-h-[64px] text-base' : ''
             } ${
               activeMethodTab === 'list'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-brand-forest text-white shadow-sm'
+                : 'text-brand-muted hover:text-brand-charcoal'
             }`}
           >
             <Store size={16} aria-hidden="true" />
-            <span>Pilih Merchant</span>
+            <span>Merchant</span>
           </button>
 
           <button
@@ -525,12 +525,12 @@ export default function QrisPage() {
               stopCameraStream();
               setActiveMethodTab('manual');
             }}
-            className={`py-2.5 px-3 rounded-xl font-bold transition-default flex items-center justify-center gap-1.5 text-xs sm:text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-              isEasyMode ? 'min-h-[56px] text-base' : ''
+            className={`py-2.5 px-2.5 rounded-xl font-bold transition-default flex items-center justify-center gap-1.5 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+              isEasyMode ? 'min-h-[64px] text-base' : ''
             } ${
               activeMethodTab === 'manual'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-brand-forest text-white shadow-sm'
+                : 'text-brand-muted hover:text-brand-charcoal'
             }`}
           >
             <Keyboard size={16} aria-hidden="true" />
@@ -544,23 +544,23 @@ export default function QrisPage() {
             onClick={() => {
               setActiveMethodTab('camera');
             }}
-            className={`py-2.5 px-3 rounded-xl font-bold transition-default flex items-center justify-center gap-1.5 text-xs sm:text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-              isEasyMode ? 'min-h-[56px] text-base' : ''
+            className={`py-2.5 px-2.5 rounded-xl font-bold transition-default flex items-center justify-center gap-1.5 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+              isEasyMode ? 'min-h-[64px] text-base' : ''
             } ${
               activeMethodTab === 'camera'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-brand-forest text-white shadow-sm'
+                : 'text-brand-muted hover:text-brand-charcoal'
             }`}
           >
             <Camera size={16} aria-hidden="true" />
-            <span>Pindai Kamera</span>
+            <span>Kamera</span>
           </button>
         </div>
 
         {/* TAB CONTENT A: DAFTAR MERCHANT DEMO */}
         {activeMethodTab === 'list' && (
           <div className="mt-3 flex flex-col gap-2">
-            <p className="text-xs text-gray-600 font-medium mb-1">
+            <p className="text-xs text-brand-muted font-medium mb-1">
               Pilih salah satu merchant mitra SahabatPay di bawah ini:
             </p>
             <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Daftar merchant simulasi">
@@ -572,23 +572,23 @@ export default function QrisPage() {
                     key={merchant.merchantId}
                     type="button"
                     onClick={() => handleSelectMerchant(merchant)}
-                    className={`flex items-start gap-3 p-3.5 rounded-2xl border text-left transition-default focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border text-left transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
                       isEasyMode ? 'min-h-[64px] p-4' : 'min-h-[52px]'
                     } ${
                       isSelected
-                        ? 'bg-amber-50/70 border-amber-500 ring-2 ring-amber-500/20 shadow-sm'
+                        ? 'bg-brand-forest/5 border-brand-forest ring-2 ring-brand-forest/15 shadow-sm'
                         : isInactive
-                        ? 'bg-gray-50 border-gray-200 opacity-75'
-                        : 'bg-white border-gray-300 hover:border-gray-400'
+                        ? 'bg-brand-cream/60 border-brand-border opacity-70'
+                        : 'bg-white border-brand-border hover:border-brand-muted/40'
                     }`}
                   >
                     <div
                       className={`w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0 ${
                         isSelected
-                          ? 'bg-amber-600 text-white'
+                          ? 'bg-brand-forest text-white'
                           : isInactive
-                          ? 'bg-gray-200 text-gray-500'
-                          : 'bg-gray-100 text-gray-800'
+                          ? 'bg-gray-200 text-brand-muted'
+                          : 'bg-brand-cream text-brand-forest'
                       }`}
                       aria-hidden="true"
                     >
@@ -596,17 +596,17 @@ export default function QrisPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
-                        <p className={`font-bold truncate text-gray-900 ${isEasyMode ? 'text-base' : 'text-sm'}`}>
+                        <p className={`font-bold truncate text-brand-charcoal ${isEasyMode ? 'text-base' : 'text-sm'}`}>
                           {merchant.merchantName}
                         </p>
                         {isInactive && (
-                          <span className="text-[10px] bg-gray-200 text-gray-700 font-bold px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] bg-gray-200 text-brand-muted font-bold px-1.5 py-0.5 rounded">
                             Nonaktif
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-600 truncate mt-0.5">{merchant.merchantCategory}</p>
-                      <p className="text-[11px] text-gray-500 font-mono mt-0.5">{merchant.merchantCode}</p>
+                      <p className="text-xs text-brand-muted truncate mt-0.5">{merchant.merchantCategory}</p>
+                      <p className="text-[11px] text-brand-muted/80 font-mono mt-0.5">{merchant.merchantCode}</p>
                     </div>
                   </button>
                 );
@@ -618,7 +618,7 @@ export default function QrisPage() {
         {/* TAB CONTENT B: INPUT KODE MERCHANT MANUAL */}
         {activeMethodTab === 'manual' && (
           <form onSubmit={handleVerifyManualCode} className="mt-3 flex flex-col gap-2.5">
-            <label htmlFor="manual-merchant-code" className={`block font-semibold text-gray-800 ${isEasyMode ? 'text-base' : 'text-sm'}`}>
+            <label htmlFor="manual-merchant-code" className={`block font-semibold text-brand-charcoal ${isEasyMode ? 'text-base' : 'text-sm'}`}>
               Ketik Kode Merchant atau Payload QRIS:
             </label>
             <div className="flex gap-2">
@@ -628,26 +628,26 @@ export default function QrisPage() {
                 placeholder="Contoh: SUMELEH-COFFEE atau MERCH-001"
                 value={manualCodeInput}
                 onChange={(e) => setManualCodeInput(e.target.value)}
-                className={`flex-1 rounded-2xl border bg-white text-gray-900 font-mono px-4 transition-default focus:ring-2 focus:ring-primary focus:border-primary border-gray-300 ${
-                  isEasyMode ? 'py-3.5 text-base min-h-[56px]' : 'py-2.5 text-sm'
+                className={`flex-1 rounded-xl border border-brand-border bg-white text-brand-charcoal font-mono px-4 transition-default focus:outline-none focus:ring-2 focus:ring-brand-forest/20 focus:border-brand-forest placeholder:text-brand-muted/60 ${
+                  isEasyMode ? 'py-4 text-base min-h-[64px]' : 'py-2.5 text-sm min-h-[46px]'
                 }`}
               />
               <Button type="submit" variant="primary" size={isEasyMode ? 'lg' : 'md'}>
                 Verifikasi
               </Button>
             </div>
-            <p className="text-xs text-gray-600">
-              Tips: Coba ketik <strong className="font-mono text-gray-900">SUMELEH-COFFEE</strong>, <strong className="font-mono text-gray-900">MINIMARKET-SHB</strong>, atau format QR payload: <strong className="font-mono text-gray-900">SAHABATPAY|QRIS|MERCH-001|SUMELEH-COFFEE</strong>.
+            <p className="text-xs text-brand-muted">
+              Tips: Coba ketik <strong className="font-mono text-brand-charcoal">SUMELEH-COFFEE</strong>, <strong className="font-mono text-brand-charcoal">MINIMARKET-SHB</strong>, atau format QR payload: <strong className="font-mono text-brand-charcoal">SAHABATPAY|QRIS|MERCH-001|SUMELEH-COFFEE</strong>.
             </p>
 
             {/* Error Message Khusus Tab Manual Jika Belum Memilih Merchant */}
             {errorMessage && !selectedMerchant && (
               <div
-                className="p-3 bg-red-50 border border-red-300 rounded-xl text-red-900 font-medium text-xs flex items-start gap-2"
+                className="sp-alert-error text-xs flex items-start gap-2"
                 role="alert"
                 aria-live="assertive"
               >
-                <AlertCircle size={16} className="shrink-0 text-red-600 mt-0.5" aria-hidden="true" />
+                <AlertCircle size={16} className="shrink-0 text-brand-coral mt-0.5" aria-hidden="true" />
                 <p className="flex-1">{errorMessage}</p>
               </div>
             )}
@@ -656,22 +656,22 @@ export default function QrisPage() {
 
         {/* TAB CONTENT C: SCANNER KAMERA (NATIVE HTML5 / WEB API) */}
         {activeMethodTab === 'camera' && (
-          <div className="mt-3 bg-white p-4 rounded-2xl border border-gray-200 flex flex-col items-center text-center">
+          <Card className="mt-3 flex flex-col items-center text-center">
             {cameraError && (
-              <div className="w-full mb-3 p-3 bg-red-50 border border-red-300 rounded-xl text-red-900 font-medium text-xs text-left flex items-start gap-2">
-                <AlertCircle size={16} className="shrink-0 text-red-600 mt-0.5" aria-hidden="true" />
+              <div className="w-full mb-3 sp-alert-error text-xs text-left flex items-start gap-2">
+                <AlertCircle size={16} className="shrink-0 text-brand-coral mt-0.5" aria-hidden="true" />
                 <p className="flex-1">{cameraError}</p>
               </div>
             )}
 
             {!isCameraActive ? (
               <div className="flex flex-col items-center gap-3 py-4">
-                <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
+                <div className="w-16 h-16 rounded-2xl bg-brand-forest/10 text-brand-forest flex items-center justify-center border border-brand-forest/20">
                   <Camera size={32} />
                 </div>
                 <div>
-                  <p className="font-bold text-gray-900">Pindai QR Melalui Kamera</p>
-                  <p className="text-xs text-gray-600 mt-1 max-w-sm">
+                  <p className="font-bold text-brand-charcoal">Pindai QR Melalui Kamera</p>
+                  <p className="text-xs text-brand-muted mt-1 max-w-sm">
                     Kamera hanya aktif saat Anda menekan tombol di bawah. Tidak ada foto atau video yang disimpan di server.
                   </p>
                 </div>
@@ -687,7 +687,7 @@ export default function QrisPage() {
               </div>
             ) : (
               <div className="w-full flex flex-col items-center gap-3">
-                <div className="relative w-full max-w-sm aspect-square bg-black rounded-2xl overflow-hidden border-2 border-amber-500 shadow-inner">
+                <div className="relative w-full max-w-sm aspect-square bg-black rounded-2xl overflow-hidden border-2 border-brand-forest shadow-inner">
                   <video
                     ref={videoRef}
                     autoPlay
@@ -703,25 +703,22 @@ export default function QrisPage() {
                   </div>
                 </div>
 
-                <p className="text-sm text-center text-gray-600" role="status" aria-live="polite">{scanMessage}</p>
+                <p className="text-sm text-center text-brand-muted" role="status" aria-live="polite">{scanMessage}</p>
 
                 <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
                   <Button
                     type="button"
-                    variant="ghost"
-                    size="sm"
+                    variant="outline"
+                    size={isEasyMode ? 'lg' : 'sm'}
                     icon={<CameraOff size={16} />}
                     onClick={handleStopCamera}
-                    className="border border-gray-300"
                   >
                     Tutup Kamera
                   </Button>
-
-
                 </div>
               </div>
             )}
-          </div>
+          </Card>
         )}
       </section>
 
@@ -729,31 +726,31 @@ export default function QrisPage() {
       {/* SECTION 2: Merchant Terpilih & Form Nominal */}
       {/* ============================================================ */}
       {selectedMerchant && (
-        <Card className="!p-5 border-amber-300 bg-amber-50/40 shadow-sm animate-in fade-in duration-200">
-          <div className="flex items-start justify-between gap-2 border-b border-amber-200/60 pb-3 mb-4">
+        <Card className="border-brand-forest/40 bg-white shadow-card-md animate-fade-in">
+          <div className="flex items-start justify-between gap-2 border-b border-brand-border pb-3 mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-amber-600 text-white font-extrabold flex items-center justify-center text-base">
+              <div className="w-12 h-12 rounded-xl bg-brand-forest text-white font-extrabold flex items-center justify-center text-base shrink-0">
                 {selectedMerchant.logoInitial}
               </div>
               <div>
-                <p className="font-extrabold text-gray-900 text-base">{selectedMerchant.merchantName}</p>
-                <p className="text-xs text-gray-600 flex items-center gap-1 mt-0.5">
-                  <Tag size={12} className="text-amber-600" />
+                <p className="font-extrabold text-brand-charcoal text-base">{selectedMerchant.merchantName}</p>
+                <p className="text-xs text-brand-muted flex items-center gap-1 mt-0.5">
+                  <Tag size={12} className="text-brand-emerald" />
                   <span>{selectedMerchant.merchantCategory}</span>
                 </p>
-                <p className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5">
-                  <MapPin size={12} className="text-gray-400" />
+                <p className="text-[11px] text-brand-muted flex items-center gap-1 mt-0.5">
+                  <MapPin size={12} className="text-brand-muted/70" />
                   <span>{selectedMerchant.merchantLocation}</span>
                 </p>
               </div>
             </div>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${selectedMerchant.isExternalQris ? 'text-amber-900 bg-amber-100 border border-amber-300' : 'text-secondary-dark bg-green-100 border border-green-300'}`}>
-              {selectedMerchant.isExternalQris ? 'QR terbaca, belum terhubung' : 'Merchant demo aktif'}
+            <span className={`shrink-0 ${selectedMerchant.isExternalQris ? 'sp-badge-amber' : 'sp-badge-green'}`}>
+              {selectedMerchant.isExternalQris ? 'QR terbaca, belum terhubung' : 'Merchant aktif'}
             </span>
           </div>
 
           {selectedMerchant.isExternalQris && (
-            <div className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs font-medium text-amber-950" role="status" aria-live="polite">
+            <div className="mb-3 sp-alert-warning text-xs" role="status" aria-live="polite">
               QRIS statis berhasil dibaca dan nama merchant telah dikenali. Pembayaran ke QRIS eksternal belum tersedia karena SahabatPay belum terhubung ke penyelenggara pembayaran. Saldo tidak akan dipotong.
             </div>
           )}
@@ -761,11 +758,11 @@ export default function QrisPage() {
           <form onSubmit={handleOpenReview} noValidate className="flex flex-col gap-4">
             {/* Input Nominal */}
             <div>
-              <label htmlFor="qris-amount-input" className={`block font-bold text-gray-900 mb-1.5 ${isEasyMode ? 'text-lg' : 'text-sm'}`}>
-                2. Masukkan Nominal Pembayaran:
+              <label htmlFor="qris-amount-input" className={`block font-bold text-brand-charcoal mb-1.5 ${isEasyMode ? 'text-lg' : 'text-sm'}`}>
+                2. Masukkan Nominal Pembayaran
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-600 text-lg" aria-hidden="true">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-brand-muted text-lg" aria-hidden="true">
                   Rp
                 </span>
                 <input
@@ -776,20 +773,20 @@ export default function QrisPage() {
                   placeholder="Contoh: 25.000 (Min. 1.000)"
                   value={amountInput ? Number(amountInput).toLocaleString('id-ID') : ''}
                   onChange={handleAmountChange}
-                  className={`w-full rounded-2xl border bg-white text-gray-900 font-bold pl-12 pr-4 transition-default focus:ring-2 focus:ring-amber-500 focus:border-amber-500 border-gray-300 ${
+                  className={`w-full rounded-xl border border-brand-border bg-white text-brand-charcoal font-bold tabular-nums pl-12 pr-4 transition-default focus:outline-none focus:ring-2 focus:ring-brand-forest/20 focus:border-brand-forest placeholder:text-brand-muted/50 placeholder:font-normal ${
                     isEasyMode ? 'py-4 text-xl min-h-[64px]' : 'py-3 text-lg min-h-[48px]'
                   }`}
                   aria-describedby="qris-amount-hint"
                 />
               </div>
-              <p id="qris-amount-hint" className="text-xs text-gray-600 font-medium mt-1">
+              <p id="qris-amount-hint" className="text-xs text-brand-muted font-medium mt-1.5">
                 Batas pembayaran: Rp 1.000 hingga Rp 10.000.000 (sesuai saldo aktif).
               </p>
             </div>
 
             {/* Pilihan Nominal Cepat */}
             <div>
-              <p className="text-xs font-semibold text-gray-700 mb-1.5">Pilihan Cepat:</p>
+              <p className="text-xs font-semibold text-brand-muted mb-1.5">Pilihan Cepat:</p>
               <div className="flex flex-wrap gap-2">
                 {PRESET_QRIS_AMOUNTS.map((amt) => (
                   <button
@@ -799,10 +796,12 @@ export default function QrisPage() {
                       setAmountInput(String(amt));
                       setErrorMessage('');
                     }}
-                    className={`px-3 py-1.5 rounded-xl border font-bold text-xs transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
+                    className={`px-3.5 py-2 rounded-xl border font-bold text-xs tabular-nums transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+                      isEasyMode ? 'min-h-[64px] text-base px-4' : 'min-h-[40px]'
+                    } ${
                       parsedAmount === amt
-                        ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
-                        : 'bg-white text-gray-800 border-gray-300 hover:border-gray-400'
+                        ? 'bg-brand-forest text-white border-brand-forest shadow-sm'
+                        : 'bg-white text-brand-charcoal border-brand-border hover:border-brand-forest/50'
                     }`}
                   >
                     {formatRupiah(amt)}
@@ -814,28 +813,28 @@ export default function QrisPage() {
             {/* Pesan Kesalahan */}
             {errorMessage && (
               <div
-                className="p-3 bg-red-50 border border-red-300 rounded-xl text-red-900 font-medium text-xs flex items-start gap-2"
+                className="sp-alert-error text-xs flex items-start gap-2"
                 role="alert"
                 aria-live="assertive"
               >
-                <AlertCircle size={16} className="shrink-0 text-red-600 mt-0.5" aria-hidden="true" />
+                <AlertCircle size={16} className="shrink-0 text-brand-coral mt-0.5" aria-hidden="true" />
                 <p className="flex-1">{errorMessage}</p>
               </div>
             )}
 
             {/* Ringkasan Biaya */}
-            <div className="bg-white p-3.5 rounded-xl border border-gray-200 flex flex-col gap-2 text-xs">
+            <div className="bg-brand-cream/60 p-3.5 rounded-xl border border-brand-border flex flex-col gap-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-gray-600">Nominal Belanja:</span>
-                <span className="font-bold text-gray-900 text-sm">{formatRupiah(parsedAmount)}</span>
+                <span className="text-brand-muted">Nominal Belanja</span>
+                <span className="font-bold text-brand-charcoal text-sm tabular-nums">{formatRupiah(parsedAmount)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Biaya Layanan QRIS:</span>
-                <span className="font-semibold text-secondary-dark">Rp 0 (Gratis)</span>
+                <span className="text-brand-muted">Biaya Layanan QRIS</span>
+                <span className="font-semibold text-brand-emerald">Rp 0 (Gratis)</span>
               </div>
-              <div className="border-t border-gray-200 pt-2 flex justify-between items-center text-sm">
-                <span className="font-bold text-gray-900">Total Potong Saldo:</span>
-                <span className="font-extrabold text-amber-700 text-base">{formatRupiah(parsedAmount)}</span>
+              <div className="border-t border-brand-border pt-2 flex justify-between items-center text-sm">
+                <span className="font-bold text-brand-charcoal">Total Potong Saldo</span>
+                <span className="font-extrabold text-brand-forest text-base tabular-nums">{formatRupiah(parsedAmount)}</span>
               </div>
             </div>
 
@@ -844,7 +843,7 @@ export default function QrisPage() {
               variant="primary"
               size={isEasyMode ? 'lg' : 'md'}
               fullWidth
-              className="mt-1 shadow-md bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white"
+              className="mt-1"
             >
               Lanjutkan ke Pembayaran
             </Button>
@@ -893,15 +892,15 @@ export default function QrisPage() {
         showDefaultFooter={false}
       >
         <div className="flex flex-col gap-4 text-center">
-          <div className="w-12 h-12 bg-amber-50 text-amber-700 rounded-2xl mx-auto flex items-center justify-center border border-amber-200" aria-hidden="true">
+          <div className="w-12 h-12 bg-brand-forest/10 text-brand-forest rounded-2xl mx-auto flex items-center justify-center" aria-hidden="true">
             <Lock size={24} />
           </div>
 
           <div>
-            <p className="font-bold text-gray-900 text-base">Otorisasi Pembayaran QRIS</p>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="font-bold text-brand-charcoal text-base">Otorisasi Pembayaran QRIS</p>
+            <p className="text-xs text-brand-muted mt-1">
               Masukkan 6 digit PIN akun Anda untuk membayar sebesar{' '}
-              <strong className="text-gray-900">{formatRupiah(parsedAmount)}</strong> ke {selectedMerchant?.merchantName}.
+              <strong className="text-brand-charcoal tabular-nums">{formatRupiah(parsedAmount)}</strong> ke {selectedMerchant?.merchantName}.
             </p>
           </div>
 
@@ -916,8 +915,8 @@ export default function QrisPage() {
           />
 
           {pinError && (
-            <div className="p-3 bg-red-50 border border-red-300 rounded-xl text-red-900 font-medium text-xs text-left flex items-start gap-2" role="alert">
-              <AlertCircle size={16} className="shrink-0 text-red-600 mt-0.5" aria-hidden="true" />
+            <div className="sp-alert-error text-xs text-left flex items-start gap-2" role="alert">
+              <AlertCircle size={16} className="shrink-0 text-brand-coral mt-0.5" aria-hidden="true" />
               <p className="flex-1">{pinError}</p>
             </div>
           )}
@@ -957,49 +956,49 @@ export default function QrisPage() {
       >
         {qrisResult && (
           <div className="flex flex-col gap-4 text-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 text-secondary-dark mx-auto flex items-center justify-center" aria-hidden="true">
+            <div className="w-16 h-16 rounded-full bg-brand-emerald/15 text-brand-emerald mx-auto flex items-center justify-center" aria-hidden="true">
               <CheckCircle2 size={36} />
             </div>
 
             <div>
-              <p className="text-xs font-bold text-secondary-dark uppercase tracking-wider">Pembayaran QRIS Berhasil</p>
-              <p className="text-2xl font-extrabold text-gray-900 mt-1">
+              <p className="text-xs font-bold text-brand-emerald uppercase tracking-wider">Pembayaran QRIS Berhasil</p>
+              <p className="text-2xl font-extrabold text-brand-charcoal tabular-nums mt-1">
                 -{formatRupiah(qrisResult.amount)}
               </p>
-              <p className="text-xs text-gray-500 font-medium mt-0.5">
+              <p className="text-xs text-brand-muted font-medium mt-0.5">
                 {formatTanggal(qrisResult.createdAt)}
               </p>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-left text-xs space-y-2 text-gray-700 font-medium">
+            <div className="bg-brand-cream/60 p-4 rounded-xl border border-brand-border text-left text-xs space-y-2 text-brand-charcoal font-medium">
               <div className="flex justify-between">
-                <span className="text-gray-500">Nomor Transaksi:</span>
-                <span className="font-mono font-bold text-gray-900">{qrisResult.id}</span>
+                <span className="text-brand-muted">Nomor Transaksi</span>
+                <span className="font-mono font-bold text-brand-charcoal">{qrisResult.id}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Nama Merchant:</span>
-                <span className="font-bold text-gray-900">{qrisResult.metadata?.merchantName}</span>
+                <span className="text-brand-muted">Nama Merchant</span>
+                <span className="font-bold text-brand-charcoal">{qrisResult.metadata?.merchantName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Kategori:</span>
-                <span className="text-gray-900">{qrisResult.metadata?.merchantCategory}</span>
+                <span className="text-brand-muted">Kategori</span>
+                <span className="text-brand-charcoal">{qrisResult.metadata?.merchantCategory}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Kode Merchant:</span>
-                <span className="font-mono text-gray-900">{qrisResult.metadata?.merchantCode}</span>
+                <span className="text-brand-muted">Kode Merchant</span>
+                <span className="font-mono text-brand-charcoal">{qrisResult.metadata?.merchantCode}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Biaya Layanan:</span>
-                <span className="font-semibold text-secondary-dark">Rp 0 (Gratis)</span>
+                <span className="text-brand-muted">Biaya Layanan</span>
+                <span className="font-semibold text-brand-emerald">Rp 0 (Gratis)</span>
               </div>
-              <div className="flex justify-between border-t border-gray-200 pt-2 text-sm">
-                <span className="font-semibold text-gray-800">Sisa Saldo Anda:</span>
-                <span className="font-extrabold text-secondary-dark">{formatRupiah(balance)}</span>
+              <div className="flex justify-between border-t border-brand-border pt-2 text-sm">
+                <span className="font-semibold text-brand-charcoal">Sisa Saldo Anda</span>
+                <span className="font-extrabold text-brand-forest tabular-nums">{formatRupiah(balance)}</span>
               </div>
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-2.5 text-[11px] text-yellow-800 font-medium text-left">
-              ℹ Ini adalah bukti pembayaran QRIS simulasi prototype SahabatPay. Tidak ada transaksi perbankan riil.
+            <div className="sp-alert-info text-[11px] text-left">
+              Ini adalah bukti pembayaran QRIS simulasi prototype SahabatPay. Tidak ada transaksi perbankan riil.
             </div>
 
             <Button
@@ -1007,7 +1006,6 @@ export default function QrisPage() {
               size={isEasyMode ? 'lg' : 'md'}
               fullWidth
               onClick={handleFinish}
-              className="bg-amber-600 hover:bg-amber-700"
             >
               Kembali ke Beranda
             </Button>

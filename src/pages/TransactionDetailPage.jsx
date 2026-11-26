@@ -78,13 +78,13 @@ export default function TransactionDetailPage() {
 
   if (!txn) {
     return (
-      <div className="flex flex-col items-center justify-center text-center p-8 bg-white rounded-2xl border border-gray-200 mt-6 gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center border border-red-200">
+      <div className="flex flex-col items-center justify-center text-center p-8 bg-white rounded-2xl border border-brand-border shadow-card mt-6 gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-brand-coral/10 text-brand-coral flex items-center justify-center border border-brand-coral/20">
           <AlertCircle size={32} />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Transaksi Tidak Ditemukan</h1>
-          <p className="text-xs text-gray-500 mt-1 max-w-sm">
+          <h1 className="text-xl font-bold text-brand-charcoal">Transaksi Tidak Ditemukan</h1>
+          <p className="text-xs text-brand-muted mt-1 max-w-sm">
             ID transaksi "{transactionId}" tidak ditemukan di akun Anda atau telah dibersihkan.
           </p>
         </div>
@@ -148,8 +148,8 @@ export default function TransactionDetailPage() {
             stopSpeech();
             navigate('/history');
           }}
-          className={`inline-flex items-center gap-2 font-semibold text-gray-700 hover:text-primary transition-default rounded-xl border border-gray-300 bg-white p-2 focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
-            isEasyMode ? 'min-h-[52px] px-4 text-base' : 'text-sm px-3'
+          className={`inline-flex items-center gap-2 font-semibold text-brand-charcoal hover:text-brand-forest transition-default rounded-xl border border-brand-border bg-white shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+            isEasyMode ? 'min-h-[64px] px-5 text-base' : 'min-h-[42px] text-sm px-3.5'
           }`}
           aria-label="Kembali ke Halaman Riwayat Transaksi"
         >
@@ -157,7 +157,7 @@ export default function TransactionDetailPage() {
           <span>Riwayat</span>
         </button>
 
-        <h1 className={`font-bold text-gray-900 ${isEasyMode ? 'text-2xl' : 'text-xl'}`}>
+        <h1 className={`font-extrabold text-brand-charcoal ${isEasyMode ? 'text-2xl' : 'text-xl'}`}>
           Detail Transaksi
         </h1>
 
@@ -168,61 +168,61 @@ export default function TransactionDetailPage() {
       {/* KARTU BUKTI STRUK TRANSAKSI (PRINTABLE RECEIPT) */}
       {/* ============================================================ */}
       <article
-        className="printable-receipt bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden flex flex-col"
+        className="printable-receipt bg-white rounded-3xl border border-brand-border shadow-card overflow-hidden flex flex-col"
         aria-label={`Bukti transaksi ${txn.title} sebesar ${formatRupiah(txn.amount)}`}
       >
         {/* Banner Status Struk */}
-        <div className="bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 border-b border-gray-200 p-6 flex flex-col items-center text-center">
+        <div className="bg-brand-cream/60 border-b border-brand-border p-6 flex flex-col items-center text-center">
           <div
-            className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 shadow-inner ${
-              isIncome ? 'bg-green-100 text-secondary-dark' : 'bg-red-100 text-primary-dark'
+            className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-3 shadow-xs ${
+              isIncome ? 'bg-brand-emerald/15 text-brand-emerald' : 'bg-brand-coral/15 text-brand-coral'
             }`}
             aria-hidden="true"
           >
             {isIncome ? <ArrowDownLeft size={30} /> : <ArrowUpRight size={30} />}
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs font-bold text-secondary-dark bg-green-50 border border-green-200 px-3 py-1 rounded-full mb-1.5">
+          <div className="sp-badge-green mb-2">
             <CheckCircle2 size={14} aria-hidden="true" />
             <span>TRANSAKSI BERHASIL</span>
           </div>
 
-          <p className="text-xs text-gray-500 font-medium">{txn.title}</p>
+          <p className="text-xs text-brand-muted font-medium">{txn.title}</p>
           <p
-            className={`font-black tracking-tight mt-1 ${
-              isIncome ? 'text-secondary-dark' : 'text-primary'
+            className={`font-black tracking-tight tabular-nums mt-1 ${
+              isIncome ? 'text-brand-emerald' : 'text-brand-coral'
             } ${isEasyMode ? 'text-4xl' : 'text-3xl'}`}
           >
             {isIncome ? '+' : '-'} {formatRupiah(txn.amount)}
           </p>
-          <p className="text-xs text-gray-500 font-medium mt-1">
+          <p className="text-xs text-brand-muted font-medium mt-1.5">
             {formatTanggal(txn.createdAt)}
           </p>
         </div>
 
         {/* Rincian Spesifik Sesuai Jenis Transaksi */}
-        <div className="p-6 flex flex-col gap-4 text-sm divide-y divide-gray-100">
+        <div className="p-6 flex flex-col gap-4 text-sm divide-y divide-brand-border">
           {/* Bagian 1: Data Identitas Transaksi */}
           <div className="flex flex-col gap-2.5 pt-1">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500 font-medium">Nomor Transaksi:</span>
+              <span className="text-brand-muted font-medium">Nomor Transaksi</span>
               <div className="flex items-center gap-1.5">
-                <span className="font-mono font-bold text-gray-900">{txn.id}</span>
+                <span className="font-mono font-bold text-brand-charcoal">{txn.id}</span>
                 <button
                   type="button"
                   onClick={handleCopyId}
-                  className="p-1 rounded text-gray-400 hover:text-primary transition-default no-print"
+                  className="p-1 rounded text-brand-muted hover:text-brand-forest transition-default no-print"
                   aria-label={copied ? 'Nomor transaksi tersalin' : 'Salin nomor transaksi'}
                   title="Salin nomor transaksi"
                 >
-                  {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+                  {copied ? <Check size={14} className="text-brand-emerald" /> : <Copy size={14} />}
                 </button>
               </div>
             </div>
 
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500 font-medium">Metode / Sumber Dana:</span>
-              <span className="font-semibold text-gray-800">{txn.paymentMethod}</span>
+              <span className="text-brand-muted font-medium">Metode / Sumber Dana</span>
+              <span className="font-semibold text-brand-charcoal">{txn.paymentMethod}</span>
             </div>
           </div>
 
@@ -232,31 +232,31 @@ export default function TransactionDetailPage() {
             {txn.type === 'top_up' && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Nominal Top Up:</span>
-                  <span className="font-bold text-gray-900">{formatRupiah(txn.amount)}</span>
+                  <span className="text-brand-muted">Nominal Top Up</span>
+                  <span className="font-bold text-brand-charcoal tabular-nums">{formatRupiah(txn.amount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Metode Pembayaran:</span>
-                  <span className="font-semibold text-gray-800">{txn.paymentMethod}</span>
+                  <span className="text-brand-muted">Metode Pembayaran</span>
+                  <span className="font-semibold text-brand-charcoal">{txn.paymentMethod}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Biaya Admin:</span>
-                  <span className="font-semibold text-secondary-dark">Rp 0 (Gratis)</span>
+                  <span className="text-brand-muted">Biaya Admin</span>
+                  <span className="font-semibold text-brand-emerald">Rp 0 (Gratis)</span>
                 </div>
-                <div className="flex justify-between border-t border-gray-100 pt-2 font-semibold">
-                  <span className="text-gray-700">Total Pembayaran:</span>
-                  <span className="font-extrabold text-gray-900">{formatRupiah(txn.amount)}</span>
+                <div className="flex justify-between border-t border-brand-border pt-2 font-semibold">
+                  <span className="text-brand-charcoal">Total Pembayaran</span>
+                  <span className="font-extrabold text-brand-charcoal tabular-nums">{formatRupiah(txn.amount)}</span>
                 </div>
                 {typeof meta.previousBalance === 'number' && (
-                  <div className="flex justify-between text-[11px] text-gray-500 pt-1">
-                    <span>Saldo Sebelum Transaksi:</span>
-                    <span>{formatRupiah(meta.previousBalance)}</span>
+                  <div className="flex justify-between text-[11px] text-brand-muted pt-1">
+                    <span>Saldo Sebelum Transaksi</span>
+                    <span className="tabular-nums">{formatRupiah(meta.previousBalance)}</span>
                   </div>
                 )}
                 {typeof meta.newBalance === 'number' && (
-                  <div className="flex justify-between text-[11px] text-secondary-dark font-semibold">
-                    <span>Saldo Setelah Transaksi:</span>
-                    <span>{formatRupiah(meta.newBalance)}</span>
+                  <div className="flex justify-between text-[11px] text-brand-emerald font-semibold">
+                    <span>Saldo Setelah Transaksi</span>
+                    <span className="tabular-nums">{formatRupiah(meta.newBalance)}</span>
                   </div>
                 )}
               </>
@@ -266,37 +266,37 @@ export default function TransactionDetailPage() {
             {txn.type === 'transfer_out' && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Nama Penerima:</span>
-                  <span className="font-bold text-gray-900">{txn.relatedParty}</span>
+                  <span className="text-brand-muted">Nama Penerima</span>
+                  <span className="font-bold text-brand-charcoal">{txn.relatedParty}</span>
                 </div>
                 {txn.relatedPhone && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Nomor Telepon Penerima:</span>
-                    <span className="font-mono text-gray-700">{txn.relatedPhoneMasked}</span>
+                    <span className="text-brand-muted">Nomor Telepon Penerima</span>
+                    <span className="font-mono text-brand-charcoal">{txn.relatedPhoneMasked}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Nominal Transfer:</span>
-                  <span className="font-bold text-gray-900">{formatRupiah(txn.amount)}</span>
+                  <span className="text-brand-muted">Nominal Transfer</span>
+                  <span className="font-bold text-brand-charcoal tabular-nums">{formatRupiah(txn.amount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Biaya Admin:</span>
-                  <span className="font-semibold text-secondary-dark">Rp 0 (Gratis)</span>
+                  <span className="text-brand-muted">Biaya Admin</span>
+                  <span className="font-semibold text-brand-emerald">Rp 0 (Gratis)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Catatan Transfer:</span>
-                  <span className="italic text-gray-700">{txn.notes}</span>
+                  <span className="text-brand-muted">Catatan Transfer</span>
+                  <span className="italic text-brand-charcoal">{txn.notes}</span>
                 </div>
                 {typeof meta.previousBalance === 'number' && (
-                  <div className="flex justify-between text-[11px] text-gray-500 border-t border-gray-100 pt-2">
-                    <span>Saldo Sebelum Transaksi:</span>
-                    <span>{formatRupiah(meta.previousBalance)}</span>
+                  <div className="flex justify-between text-[11px] text-brand-muted border-t border-brand-border pt-2">
+                    <span>Saldo Sebelum Transaksi</span>
+                    <span className="tabular-nums">{formatRupiah(meta.previousBalance)}</span>
                   </div>
                 )}
                 {typeof meta.newBalance === 'number' && (
-                  <div className="flex justify-between text-[11px] text-secondary-dark font-semibold">
-                    <span>Saldo Setelah Transaksi:</span>
-                    <span>{formatRupiah(meta.newBalance)}</span>
+                  <div className="flex justify-between text-[11px] text-brand-emerald font-semibold">
+                    <span>Saldo Setelah Transaksi</span>
+                    <span className="tabular-nums">{formatRupiah(meta.newBalance)}</span>
                   </div>
                 )}
               </>
@@ -306,27 +306,27 @@ export default function TransactionDetailPage() {
             {txn.type === 'transfer_in' && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Nama Pengirim:</span>
-                  <span className="font-bold text-gray-900">{txn.relatedParty}</span>
+                  <span className="text-brand-muted">Nama Pengirim</span>
+                  <span className="font-bold text-brand-charcoal">{txn.relatedParty}</span>
                 </div>
                 {txn.relatedPhone && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Nomor Telepon Pengirim:</span>
-                    <span className="font-mono text-gray-700">{txn.relatedPhoneMasked}</span>
+                    <span className="text-brand-muted">Nomor Telepon Pengirim</span>
+                    <span className="font-mono text-brand-charcoal">{txn.relatedPhoneMasked}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Nominal Diterima:</span>
-                  <span className="font-bold text-secondary-dark">{formatRupiah(txn.amount)}</span>
+                  <span className="text-brand-muted">Nominal Diterima</span>
+                  <span className="font-bold text-brand-emerald tabular-nums">{formatRupiah(txn.amount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Catatan Pengirim:</span>
-                  <span className="italic text-gray-700">{txn.notes}</span>
+                  <span className="text-brand-muted">Catatan Pengirim</span>
+                  <span className="italic text-brand-charcoal">{txn.notes}</span>
                 </div>
                 {typeof meta.newBalance === 'number' && (
-                  <div className="flex justify-between text-[11px] text-secondary-dark font-semibold border-t border-gray-100 pt-2">
-                    <span>Saldo Setelah Transaksi:</span>
-                    <span>{formatRupiah(meta.newBalance)}</span>
+                  <div className="flex justify-between text-[11px] text-brand-emerald font-semibold border-t border-brand-border pt-2">
+                    <span>Saldo Setelah Transaksi</span>
+                    <span className="tabular-nums">{formatRupiah(meta.newBalance)}</span>
                   </div>
                 )}
               </>
@@ -336,49 +336,49 @@ export default function TransactionDetailPage() {
             {txn.type === 'qris_payment' && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Nama Merchant:</span>
-                  <span className="font-bold text-gray-900">{meta.merchantName || txn.relatedParty}</span>
+                  <span className="text-brand-muted">Nama Merchant</span>
+                  <span className="font-bold text-brand-charcoal">{meta.merchantName || txn.relatedParty}</span>
                 </div>
                 {meta.merchantCategory && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Kategori Merchant:</span>
-                    <span className="text-gray-800">{meta.merchantCategory}</span>
+                    <span className="text-brand-muted">Kategori Merchant</span>
+                    <span className="text-brand-charcoal">{meta.merchantCategory}</span>
                   </div>
                 )}
                 {meta.merchantLocation && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Lokasi Merchant:</span>
-                    <span className="text-gray-700 text-right">{meta.merchantLocation}</span>
+                    <span className="text-brand-muted">Lokasi Merchant</span>
+                    <span className="text-brand-charcoal text-right">{meta.merchantLocation}</span>
                   </div>
                 )}
                 {meta.merchantCode && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Kode Merchant:</span>
-                    <span className="font-mono text-gray-700">{meta.merchantCode}</span>
+                    <span className="text-brand-muted">Kode Merchant</span>
+                    <span className="font-mono text-brand-charcoal">{meta.merchantCode}</span>
                   </div>
                 )}
-                <div className="flex justify-between border-t border-gray-100 pt-2">
-                  <span className="text-gray-500">Nominal Belanja:</span>
-                  <span className="font-bold text-gray-900">{formatRupiah(txn.amount)}</span>
+                <div className="flex justify-between border-t border-brand-border pt-2">
+                  <span className="text-brand-muted">Nominal Belanja</span>
+                  <span className="font-bold text-brand-charcoal tabular-nums">{formatRupiah(txn.amount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Biaya Layanan:</span>
-                  <span className="font-semibold text-secondary-dark">Rp 0 (Gratis)</span>
+                  <span className="text-brand-muted">Biaya Layanan</span>
+                  <span className="font-semibold text-brand-emerald">Rp 0 (Gratis)</span>
                 </div>
                 <div className="flex justify-between font-semibold">
-                  <span className="text-gray-700">Total Potong Saldo:</span>
-                  <span className="font-extrabold text-primary">{formatRupiah(txn.amount)}</span>
+                  <span className="text-brand-charcoal">Total Potong Saldo</span>
+                  <span className="font-extrabold text-brand-forest tabular-nums">{formatRupiah(txn.amount)}</span>
                 </div>
                 {typeof meta.previousBalance === 'number' && (
-                  <div className="flex justify-between text-[11px] text-gray-500 border-t border-gray-100 pt-1">
-                    <span>Saldo Sebelum:</span>
-                    <span>{formatRupiah(meta.previousBalance)}</span>
+                  <div className="flex justify-between text-[11px] text-brand-muted border-t border-brand-border pt-1">
+                    <span>Saldo Sebelum</span>
+                    <span className="tabular-nums">{formatRupiah(meta.previousBalance)}</span>
                   </div>
                 )}
                 {typeof meta.newBalance === 'number' && (
-                  <div className="flex justify-between text-[11px] text-secondary-dark font-semibold">
-                    <span>Saldo Sisa:</span>
-                    <span>{formatRupiah(meta.newBalance)}</span>
+                  <div className="flex justify-between text-[11px] text-brand-emerald font-semibold">
+                    <span>Saldo Sisa</span>
+                    <span className="tabular-nums">{formatRupiah(meta.newBalance)}</span>
                   </div>
                 )}
               </>
@@ -386,8 +386,8 @@ export default function TransactionDetailPage() {
           </div>
 
           {/* Bagian 3: Disclaimer Simulasi */}
-          <div className="pt-4 flex flex-col gap-1.5 text-[11px] text-gray-500 text-center">
-            <p className="font-bold text-gray-700">SAHABATPAY PROTOTYPE · SATU DOMPET, SEMUA BISA</p>
+          <div className="pt-4 flex flex-col gap-1.5 text-[11px] text-brand-muted text-center">
+            <p className="font-bold text-brand-forest">SAHABATPAY PROTOTYPE · SATU DOMPET, SEMUA BISA</p>
             <p className="leading-relaxed">
               Bukti transaksi simulasi prototype SahabatPay. Bukan merupakan bukti perbankan riil atau sertifikasi QRIS nasional Bank Indonesia.
             </p>
@@ -395,7 +395,7 @@ export default function TransactionDetailPage() {
         </div>
 
         {/* Tombol Aksi (Print & Salin) - Disembunyikan saat print */}
-        <div className="bg-gray-50 p-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3 no-print">
+        <div className="bg-brand-cream/50 p-4 border-t border-brand-border flex flex-wrap items-center justify-between gap-3 no-print">
           <Button
             type="button"
             variant="outline"

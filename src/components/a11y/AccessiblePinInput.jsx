@@ -1,290 +1,354 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Volume2,
-  ChevronUp,
-  Check,
-  RotateCcw,
   Delete,
+  RotateCcw,
+  Volume2,
   Lock,
-  VolumeX,
-  Info,
+  CheckCircle2,
+  HelpCircle,
 } from 'lucide-react';
 import { useA11y } from '../../context/A11yContext';
 import { useAudioGuidance } from '../../hooks/useAudioGuidance';
 import Button from '../common/Button';
 
 /**
- * Komponen AccessiblePinInput
- * Memungkinkan pengguna tunanetra memasukkan PIN 6 digit menggunakan pola stepper:
- * - Naikkan angka (0-9) dengan tombol fisik Volume Up / Panah Atas / Tombol Layar
- * - Pilih angka dengan tombol fisik Volume Down / Enter / Tombol Layar
- * - Bunyi nada tick setiap angka berubah tanpa pernah membacakan angka PIN
- * - Feedback audio hanya mengumumkan nomor digit yang tercatat demi keamanan
+ * Komponen AccessiblePinInput (SahabatPay Responsive PIN Keypad)
+ *
+ * Mengimplementasikan 3 perilaku PIN Keypad sesuai Mode Aksesibilitas:
+ *
+ * A. AUDIO GUIDANCE MODE (TUNANETRA):
+ * - Keypad numerik 0-9 ramah screen reader (TalkBack / VoiceOver).
+ * - Pengguna menggeser jari untuk menjelajahi tombol; screen reader membacakan nama tombol: "Angka 1", "Angka 2", dll.
+ * - Pengguna memilih angka dengan double-tap native bawaan screen reader (tanpa custom touch listener yang bertabrakan).
+ * - Setelah angka dipilih, TTS hanya membacakan status netral: "Angka berhasil dipilih" dan progres digit: "Digit ke-2 dari 6" (TIDAK membacakan angka PIN).
+ * - Tombol kontrol dapat dijangkau: Hapus (Delete), Ulangi Instruksi, Bersihkan (Clear), dan Konfirmasi.
+ *
+ * B. NORMAL MODE:
+ * - Keypad numerik standar 0-9 ringkas dan modern.
+ * - Ketukan langsung pada angka.
+ * - Tombol Hapus dan Konfirmasi.
+ * - Hapus seluruh mekanisme up/down atau stepper.
+ *
+ * C. EASY MODE:
+ * - Keypad numerik standar 0-9 dengan target sentuh ekstra besar minimal 64x64 piksel.
+ * - Jarak antartombol lega, kontras tinggi.
+ * - Tombol Hapus, Koreksi, dan Konfirmasi besar dan mudah dijangkau.
+ * - Tidak ada mekanisme stepper atau up/down.
  */
+
+const DIGIT_WORDS = [
+  'nol',
+  'pertama',
+  'kedua',
+  'ketiga',
+  'keempat',
+  'kelima',
+  'keenam',
+];
+
 export default function AccessiblePinInput({
   pinLength = 6,
   onComplete,
   disabled = false,
   autoFocus = true,
+  onCancel,
 }) {
   const { isEasyMode, isAudioMode } = useA11y();
-  const { playTickSound, playSuccessSound, speakText } = useAudioGuidance();
+  const { playTickSound, playSuccessSound, playErrorSound, speakText } = useAudioGuidance();
 
-  // Buffer digit PIN yang sudah dipilih (tersimpan di memory React, TIDAK di LocalStorage)
+  // Buffer digit PIN tersimpan di memory React (TIDAK di LocalStorage)
   const [pinDigits, setPinDigits] = useState([]);
-  // Angka saat ini yang sedang dipilih pada stepper (0 - 9)
-  const [currentNumber, setCurrentNumber] = useState(0);
   const containerRef = useRef(null);
 
   const isCompleted = pinDigits.length === pinLength;
 
   // Nonaktifkan mikrofon saat komponen input PIN aktif demi privasi
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent('sahabatpay:pin-active', { detail: { active: true } }));
+    window.dispatchEvent(
+      new CustomEvent('sahabatpay:pin-active', { detail: { active: true } })
+    );
     return () => {
-      window.dispatchEvent(new CustomEvent('sahabatpay:pin-active', { detail: { active: false } }));
+      window.dispatchEvent(
+        new CustomEvent('sahabatpay:pin-active', { detail: { active: false } })
+      );
     };
   }, []);
 
-  // Naikkan angka (0 -> 1 -> ... -> 9 -> 0)
-  const handleStepUp = useCallback(() => {
-    if (disabled || isCompleted) return;
-    setCurrentNumber((prev) => {
-      const next = (prev + 1) % 10;
-      playTickSound(500 + next * 35); // Frekuensi nada sedikit naik mengikuti angka
-      return next;
-    });
-  }, [disabled, isCompleted, playTickSound]);
+  // Pengumuman instruksi awal saat masuk di Audio Guidance Mode
+  useEffect(() => {
+    if (isAudioMode) {
+      speakText(
+        'Keypad PIN enam digit aktif. Jelajahi tombol angka nol sampai sembilan dengan menggeser jari, lalu ketuk dua kali untuk memilih angka. Angka rahasia tidak akan dibacakan demi keamanan.'
+      );
+    }
+  }, [isAudioMode, speakText]);
 
-  // Turunkan angka (0 -> 9 -> ... -> 0)
-  const handleStepDown = useCallback(() => {
-    if (disabled || isCompleted) return;
-    setCurrentNumber((prev) => {
-      const next = prev === 0 ? 9 : prev - 1;
-      playTickSound(500 + next * 35);
-      return next;
-    });
-  }, [disabled, isCompleted, playTickSound]);
+  // Handler memilih digit (0-9)
+  const handleDigitSelect = useCallback(
+    (digit) => {
+      if (disabled || isCompleted) return;
 
-  // Pilih angka saat ini sebagai digit PIN aktif
-  const handleSelectDigit = useCallback(() => {
-    if (disabled || isCompleted) return;
+      setPinDigits((prev) => {
+        if (prev.length >= pinLength) return prev;
+        const next = [...prev, String(digit)];
+        const digitIndex = next.length;
 
-    setPinDigits((prev) => {
-      const next = [...prev, String(currentNumber)];
-      const digitIndex = next.length;
+        // Feedback nada tick
+        playTickSound(520 + Number(digit) * 25);
 
-      playTickSound(880); // Nada konfirmasi digit dipilih
-
-      if (isAudioMode) {
-        if (digitIndex === pinLength) {
-          speakText('PIN enam digit lengkap.');
-        } else if (digitIndex === pinLength - 1) {
-          speakText('Satu digit lagi.');
-        } else {
-          speakText(`Digit ke-${digitIndex} tercatat.`);
+        // Feedback getaran jika perangkat mendukung
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(15);
         }
-      }
 
-      // Reset stepper ke 0 untuk digit berikutnya
-      setCurrentNumber(0);
+        // Feedback suara khusus Audio Mode
+        if (isAudioMode) {
+          if (digitIndex === pinLength) {
+            playSuccessSound();
+            speakText(
+              'Angka berhasil dipilih. Enam digit PIN lengkap. Tekan tombol Konfirmasi atau sistem sedang memvalidasi.'
+            );
+          } else {
+            const wordOrder = DIGIT_WORDS[digitIndex] || `ke-${digitIndex}`;
+            speakText(`Angka berhasil dipilih. Digit ${wordOrder} dari enam.`);
+          }
+        }
 
-      // Jika sudah lengkap 6 digit, kirim hasil ke parent
-      if (next.length === pinLength && onComplete) {
-        setTimeout(() => {
-          onComplete(next.join(''));
-        }, 150);
-      }
+        // Trigger onComplete jika sudah mencapai 6 digit
+        if (next.length === pinLength && onComplete) {
+          setTimeout(() => {
+            onComplete(next.join(''));
+          }, 200);
+        }
 
-      return next;
-    });
-  }, [disabled, isCompleted, currentNumber, pinLength, onComplete, playTickSound, isAudioMode, speakText]);
+        return next;
+      });
+    },
+    [disabled, isCompleted, pinLength, isAudioMode, playTickSound, playSuccessSound, speakText, onComplete]
+  );
 
-  // Hapus digit terakhir
-  const handleDeleteDigit = useCallback(() => {
+  // Hapus satu digit terakhir
+  const handleDelete = useCallback(() => {
     if (disabled || pinDigits.length === 0) return;
+
     setPinDigits((prev) => {
       const next = prev.slice(0, -1);
       playTickSound(380);
+
       if (isAudioMode) {
-        speakText(`Digit terakhir dihapus. Tersisa ${next.length} digit.`);
+        if (next.length === 0) {
+          speakText('Satu digit dihapus. Belum ada digit terisi.');
+        } else {
+          const wordOrder = DIGIT_WORDS[next.length] || `ke-${next.length}`;
+          speakText(`Satu digit dihapus. Tersisa digit ${wordOrder} dari enam.`);
+        }
       }
+
       return next;
     });
-  }, [disabled, pinDigits.length, playTickSound, isAudioMode, speakText]);
+  }, [disabled, pinDigits.length, isAudioMode, playTickSound, speakText]);
 
-  // Reset seluruh digit
-  const handleReset = useCallback(() => {
-    if (disabled) return;
+  // Bersihkan seluruh digit (Reset)
+  const handleClear = useCallback(() => {
+    if (disabled || pinDigits.length === 0) return;
+
     setPinDigits([]);
-    setCurrentNumber(0);
-    playTickSound(300);
-    if (isAudioMode) speakText('Seluruh digit PIN dibersihkan.');
-  }, [disabled, playTickSound, isAudioMode, speakText]);
+    playTickSound(320);
 
-  // Listener Tombol Fisik (Volume Up / Volume Down & Panah Keyboard)
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (disabled || isCompleted) return;
+    if (isAudioMode) {
+      speakText('Seluruh digit PIN telah dibersihkan. Silakan masukkan dari digit pertama.');
+    }
+  }, [disabled, pinDigits.length, isAudioMode, playTickSound, speakText]);
 
-      // Tangkap tombol volume fisik (AudioVolumeUp / AudioVolumeDown) atau Panah Keyboard
-      if (e.key === 'AudioVolumeUp' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        handleStepUp();
-      } else if (e.key === 'AudioVolumeDown' || e.key === 'Enter') {
-        e.preventDefault();
-        handleSelectDigit();
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        handleStepDown();
-      } else if (e.key === 'Backspace') {
-        e.preventDefault();
-        handleDeleteDigit();
-      } else if (/^[0-9]$/.test(e.key)) {
-        // Fallback tombol keyboard angka langsung
-        e.preventDefault();
-        setCurrentNumber(Number(e.key));
-        setPinDigits((prev) => {
-          if (prev.length >= pinLength) return prev;
-          const next = [...prev, e.key];
-          playTickSound(880);
-          if (next.length === pinLength && onComplete) {
-            setTimeout(() => onComplete(next.join('')), 150);
-          }
-          return next;
-        });
-      }
-    };
+  // Ulangi instruksi penggunaan keypad
+  const handleRepeatInstruction = useCallback(() => {
+    if (isAudioMode) {
+      const filled = pinDigits.length;
+      speakText(
+        `Panduan: Saat ini ${filled} dari enam digit telah terisi. Geser jari untuk menemukan tombol angka nol sampai sembilan, lalu ketuk dua kali untuk memilih angka.`
+      );
+    }
+  }, [isAudioMode, pinDigits.length, speakText]);
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [disabled, isCompleted, handleStepUp, handleSelectDigit, handleStepDown, handleDeleteDigit, onComplete, pinLength, playTickSound]);
+  // Konfirmasi manual (opsional, selain auto onComplete)
+  const handleManualConfirm = useCallback(() => {
+    if (pinDigits.length === pinLength && onComplete) {
+      onComplete(pinDigits.join(''));
+    } else if (isAudioMode) {
+      playErrorSound();
+      speakText(`PIN belum lengkap. Baru terisi ${pinDigits.length} dari enam digit.`);
+    }
+  }, [pinDigits, pinLength, onComplete, isAudioMode, playErrorSound, speakText]);
+
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
   return (
     <div
       ref={containerRef}
-      className="flex flex-col items-center gap-4 w-full text-center"
+      className={`w-full flex flex-col items-center gap-4 ${
+        isEasyMode ? 'p-4' : 'p-2'
+      }`}
       role="region"
-      aria-label="Input PIN Aksesibel dengan tombol volume atau stepper"
+      aria-label="Keypad input PIN rahasia"
     >
-      {/* Tampilan 6 Bullet PIN Tersamar */}
+      {/* 1. INDIKATOR PROGRES 6 DIGIT */}
       <div
-        className="flex items-center justify-center gap-2.5 my-1"
-        role="group"
-        aria-label={`Progress PIN: ${pinDigits.length} dari ${pinLength} digit telah dimasukkan`}
+        className="flex items-center justify-center gap-3 py-2"
+        role="status"
+        aria-label={`${pinDigits.length} dari ${pinLength} digit telah terisi`}
       >
-        {Array.from({ length: pinLength }).map((_, idx) => {
-          const isFilled = idx < pinDigits.length;
-          const isCurrent = idx === pinDigits.length;
+        {[...Array(pinLength)].map((_, i) => {
+          const isFilled = i < pinDigits.length;
           return (
             <div
-              key={idx}
-              className={`rounded-2xl transition-all flex items-center justify-center font-mono font-bold ${
-                isEasyMode ? 'w-11 h-14 text-2xl' : 'w-9 h-12 text-xl'
+              key={i}
+              className={`transition-all duration-200 rounded-full border-2 ${
+                isEasyMode ? 'h-6 w-6' : 'h-4 w-4'
               } ${
                 isFilled
-                  ? 'bg-amber-600 text-white shadow-sm border border-amber-600'
-                  : isCurrent
-                  ? 'border-2 border-amber-500 bg-amber-50/60 ring-2 ring-amber-400/20 animate-pulse'
-                  : 'border border-gray-300 bg-gray-50'
+                  ? 'bg-brand-forest border-brand-forest scale-110 shadow-sm'
+                  : 'bg-stone-100 border-stone-300 dark:bg-stone-800 dark:border-stone-600'
               }`}
               aria-hidden="true"
-            >
-              {isFilled ? '•' : ''}
-            </div>
+            />
           );
         })}
       </div>
 
       <p className="sr-only" aria-live="polite">
         {pinDigits.length === pinLength
-          ? 'PIN enam digit lengkap.'
-          : `${pinDigits.length} dari ${pinLength} digit tercatat.`}
+          ? 'Enam digit PIN lengkap.'
+          : `${pinDigits.length} digit telah dimasukkan.`}
       </p>
 
-      {/* Kontrol Stepper Aksesibel (Alternatif Tombol Layar) */}
-      {!isCompleted && (
-        <div className="w-full max-w-xs flex flex-col gap-2.5 bg-gray-50 p-4 rounded-2xl border border-gray-200">
-          <p className="text-xs text-gray-600 font-medium leading-relaxed">
-            Pilih angka dengan tombol di bawah atau tombol <strong>Volume / Panah</strong> perangkat Anda:
-          </p>
-
-          <div className="flex items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={handleStepUp}
-              disabled={disabled}
-              className={`rounded-2xl border bg-white text-gray-800 font-bold hover:bg-gray-100 flex items-center justify-center shadow-xs transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-                isEasyMode ? 'min-h-[64px] min-w-[70px] text-lg' : 'min-h-[52px] min-w-[60px] text-sm'
-              }`}
-              aria-label="Naikkan angka pilihan 0 sampai 9"
-              title="Naikkan Angka (atau tekan Volume Up / Panah Atas)"
-            >
-              <div className="flex flex-col items-center">
-                <ChevronUp size={18} />
-                <span>+ Angka</span>
-              </div>
-            </button>
-
-            {/* Display Angka Stepper Saat Ini */}
-            <div
-              className={`w-16 h-16 rounded-2xl bg-white border-2 border-amber-500 text-amber-900 font-black flex items-center justify-center shadow-inner ${
-                isEasyMode ? 'text-3xl' : 'text-2xl'
-              }`}
-              aria-label={`Pilihan angka saat ini: ${currentNumber}`}
-            >
-              {currentNumber}
-            </div>
-
-            <button
-              type="button"
-              onClick={handleSelectDigit}
-              disabled={disabled}
-              className={`rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold flex items-center justify-center shadow-sm transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-                isEasyMode ? 'min-h-[64px] min-w-[90px] text-base px-3' : 'min-h-[52px] min-w-[76px] text-xs px-2.5'
-              }`}
-              aria-label="Pilih angka ini untuk digit PIN"
-              title="Pilih Digit (atau tekan Volume Down / Enter)"
-            >
-              <div className="flex flex-col items-center">
-                <Check size={18} />
-                <span>Pilih Digit</span>
-              </div>
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between text-xs pt-1 text-gray-500">
-            <button
-              type="button"
-              onClick={handleDeleteDigit}
-              disabled={pinDigits.length === 0}
-              className="text-gray-600 hover:text-red-600 p-1 font-semibold flex items-center gap-1 disabled:opacity-40"
-              aria-label="Hapus digit terakhir"
-            >
-              <Delete size={14} />
-              <span>Hapus Digit</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleReset}
-              disabled={pinDigits.length === 0}
-              className="text-gray-600 hover:text-red-600 p-1 font-semibold flex items-center gap-1 disabled:opacity-40"
-              aria-label="Bersihkan seluruh digit PIN"
-            >
-              <RotateCcw size={14} />
-              <span>Reset</span>
-            </button>
-          </div>
+      {/* 2. AUDIO GUIDANCE MODE CONTROLS: Tombol Ulangi Instruksi khusus */}
+      {isAudioMode && (
+        <div className="w-full flex justify-center pb-1">
+          <button
+            type="button"
+            onClick={handleRepeatInstruction}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-emerald/10 text-brand-emerald hover:bg-brand-emerald/20 focus-visible:ring-2 focus-visible:ring-brand-emerald"
+            aria-label="Ulangi instruksi panduan keypad suara"
+          >
+            <HelpCircle size={14} aria-hidden="true" />
+            <span>Ulangi Instruksi</span>
+          </button>
         </div>
       )}
 
-      {/* Info Hardware Volume Button */}
-      <div className="text-[11px] text-gray-500 flex items-center justify-center gap-1.5 max-w-xs">
-        <Volume2 size={13} className="shrink-0 text-gray-400" />
-        <span>Tips: Tombol Volume Up / Down dapat digunakan di browser yang kompatibel.</span>
+      {/* 3. KEYPAD GRID NUMERIK (0-9) SESUAI MODE */}
+      <div
+        className={`w-full max-w-sm grid grid-cols-3 ${
+          isEasyMode ? 'gap-3.5' : isAudioMode ? 'gap-2.5' : 'gap-2'
+        }`}
+        role="group"
+        aria-label="Tombol angka numerik"
+      >
+        {/* Tombol Angka 1 sampai 9 */}
+        {keys.map((digit) => (
+          <button
+            key={digit}
+            type="button"
+            disabled={disabled || isCompleted}
+            onClick={() => handleDigitSelect(digit)}
+            aria-label={`Angka ${digit}`}
+            className={`flex items-center justify-center font-extrabold rounded-2xl border transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand-forest disabled:opacity-40 ${
+              isEasyMode
+                ? 'min-h-[68px] min-w-[68px] text-3xl bg-white border-stone-300 shadow-md active:bg-stone-100'
+                : isAudioMode
+                ? 'min-h-[64px] min-w-[64px] text-2xl bg-white border-brand-border shadow-sm active:bg-brand-cream hover:bg-brand-cream/60'
+                : 'min-h-[52px] text-xl bg-white border-stone-200 shadow-sm active:bg-stone-100 hover:bg-stone-50'
+            } text-brand-charcoal dark:bg-stone-800 dark:border-stone-700 dark:text-stone-100`}
+          >
+            {digit}
+          </button>
+        ))}
+
+        {/* Baris Bawah: Tombol Hapus (Kiri) */}
+        <button
+          type="button"
+          disabled={disabled || pinDigits.length === 0}
+          onClick={handleDelete}
+          aria-label="Hapus satu digit terakhir"
+          className={`flex flex-col items-center justify-center font-bold rounded-2xl border transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand-coral disabled:opacity-30 ${
+            isEasyMode
+              ? 'min-h-[68px] min-w-[68px] text-sm bg-rose-50 border-rose-200 text-rose-800 active:bg-rose-100'
+              : isAudioMode
+              ? 'min-h-[64px] min-w-[64px] text-xs bg-rose-50 border-rose-200 text-rose-700 active:bg-rose-100'
+              : 'min-h-[52px] text-xs bg-stone-100 border-stone-200 text-stone-700 active:bg-stone-200'
+          }`}
+        >
+          <Delete
+            size={isEasyMode ? 24 : isAudioMode ? 22 : 18}
+            aria-hidden="true"
+          />
+          <span className="mt-0.5">Hapus</span>
+        </button>
+
+        {/* Tombol Angka 0 (Tengah) */}
+        <button
+          type="button"
+          disabled={disabled || isCompleted}
+          onClick={() => handleDigitSelect('0')}
+          aria-label="Angka 0"
+          className={`flex items-center justify-center font-extrabold rounded-2xl border transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand-forest disabled:opacity-40 ${
+            isEasyMode
+              ? 'min-h-[68px] min-w-[68px] text-3xl bg-white border-stone-300 shadow-md active:bg-stone-100'
+              : isAudioMode
+              ? 'min-h-[64px] min-w-[64px] text-2xl bg-white border-brand-border shadow-sm active:bg-brand-cream hover:bg-brand-cream/60'
+              : 'min-h-[52px] text-xl bg-white border-stone-200 shadow-sm active:bg-stone-100 hover:bg-stone-50'
+          } text-brand-charcoal dark:bg-stone-800 dark:border-stone-700 dark:text-stone-100`}
+        >
+          0
+        </button>
+
+        {/* Tombol Bersihkan / Konfirmasi (Kanan) */}
+        {pinDigits.length === pinLength ? (
+          <button
+            type="button"
+            onClick={handleManualConfirm}
+            aria-label="Konfirmasi enam digit PIN"
+            className={`flex flex-col items-center justify-center font-bold rounded-2xl border transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand-emerald ${
+              isEasyMode
+                ? 'min-h-[68px] min-w-[68px] text-sm bg-emerald-600 text-white border-emerald-700 active:bg-emerald-700'
+                : isAudioMode
+                ? 'min-h-[64px] min-w-[64px] text-xs bg-emerald-600 text-white border-emerald-700 active:bg-emerald-700'
+                : 'min-h-[52px] text-xs bg-brand-forest text-white border-brand-forest active:bg-brand-forest/90'
+            }`}
+          >
+            <CheckCircle2
+              size={isEasyMode ? 24 : isAudioMode ? 22 : 18}
+              aria-hidden="true"
+            />
+            <span className="mt-0.5">Konfirmasi</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={disabled || pinDigits.length === 0}
+            onClick={handleClear}
+            aria-label="Bersihkan semua digit PIN"
+            className={`flex flex-col items-center justify-center font-bold rounded-2xl border transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-amber-500 disabled:opacity-30 ${
+              isEasyMode
+                ? 'min-h-[68px] min-w-[68px] text-sm bg-amber-50 border-amber-200 text-amber-800 active:bg-amber-100'
+                : isAudioMode
+                ? 'min-h-[64px] min-w-[64px] text-xs bg-amber-50 border-amber-200 text-amber-800 active:bg-amber-100'
+                : 'min-h-[52px] text-xs bg-stone-100 border-stone-200 text-stone-600 active:bg-stone-200'
+            }`}
+          >
+            <RotateCcw
+              size={isEasyMode ? 22 : isAudioMode ? 20 : 16}
+              aria-hidden="true"
+            />
+            <span className="mt-0.5">Reset</span>
+          </button>
+        )}
+      </div>
+
+      {/* Pesan Keamanan Privasi */}
+      <div className="flex items-center gap-1.5 text-xs text-brand-muted mt-1" role="note">
+        <Lock size={13} className="shrink-0 text-brand-emerald" aria-hidden="true" />
+        <span>PIN dienkripsi secara lokal & tidak pernah disuarakan.</span>
       </div>
     </div>
   );

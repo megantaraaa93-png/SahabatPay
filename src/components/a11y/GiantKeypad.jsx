@@ -55,7 +55,7 @@ export default function GiantKeypad({
 
   return (
     <div
-      className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-3 flex flex-col gap-2.5"
+      className="w-full bg-brand-cream/60 border border-brand-border rounded-2xl p-3 flex flex-col gap-2.5"
       role="group"
       aria-label="Keypad angka besar"
     >
@@ -66,7 +66,7 @@ export default function GiantKeypad({
             type="button"
             disabled={disabled}
             onClick={() => handleDigit(digit)}
-            className="min-h-[64px] rounded-2xl bg-white border border-gray-300 hover:bg-gray-100 active:bg-gray-200 text-gray-900 font-extrabold text-2xl shadow-xs transition-default focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary touch-manipulation"
+            className="min-h-[64px] rounded-2xl bg-white border border-brand-border hover:bg-brand-cream active:bg-brand-border/50 text-brand-charcoal font-extrabold text-2xl shadow-card transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest touch-manipulation"
             aria-label={`Angka ${digit}`}
           >
             {digit}
@@ -77,7 +77,7 @@ export default function GiantKeypad({
           type="button"
           disabled={disabled}
           onClick={handleClear}
-          className="min-h-[64px] rounded-2xl bg-amber-50 border border-amber-300 hover:bg-amber-100 text-amber-900 font-bold text-sm flex flex-col items-center justify-center gap-0.5 focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary touch-manipulation"
+          className="min-h-[64px] rounded-2xl bg-amber-50 border border-amber-300 hover:bg-amber-100 text-amber-900 font-bold text-sm flex flex-col items-center justify-center gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest touch-manipulation"
           aria-label="Koreksi atau bersihkan semua angka"
         >
           <RotateCcw size={18} aria-hidden="true" />
@@ -88,7 +88,7 @@ export default function GiantKeypad({
           type="button"
           disabled={disabled}
           onClick={() => handleDigit('0')}
-          className="min-h-[64px] rounded-2xl bg-white border border-gray-300 hover:bg-gray-100 active:bg-gray-200 text-gray-900 font-extrabold text-2xl shadow-xs transition-default focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary touch-manipulation"
+          className="min-h-[64px] rounded-2xl bg-white border border-brand-border hover:bg-brand-cream active:bg-brand-border/50 text-brand-charcoal font-extrabold text-2xl shadow-card transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest touch-manipulation"
           aria-label="Angka 0"
         >
           0
@@ -98,7 +98,7 @@ export default function GiantKeypad({
           type="button"
           disabled={disabled}
           onClick={handleDelete}
-          className="min-h-[64px] rounded-2xl bg-red-50 border border-red-200 hover:bg-red-100 text-red-800 font-bold text-sm flex flex-col items-center justify-center gap-0.5 focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary touch-manipulation"
+          className="min-h-[64px] rounded-2xl bg-brand-coral/10 border border-brand-coral/30 hover:bg-brand-coral/20 text-brand-coral font-bold text-sm flex flex-col items-center justify-center gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-coral touch-manipulation"
           aria-label="Hapus satu digit terakhir"
         >
           <Delete size={18} aria-hidden="true" />
@@ -112,7 +112,7 @@ export default function GiantKeypad({
             <button
               type="button"
               onClick={onBack}
-              className="min-h-[64px] rounded-2xl bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 font-bold text-base flex items-center justify-center gap-2 focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary touch-manipulation"
+              className="min-h-[64px] rounded-2xl bg-white border border-brand-border hover:bg-brand-cream text-brand-charcoal font-bold text-base flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest touch-manipulation"
             >
               <ArrowLeft size={18} aria-hidden="true" />
               <span>{backLabel}</span>
@@ -136,7 +136,7 @@ export default function GiantKeypad({
                   type="button"
                   disabled={disabled}
                   onClick={onConfirm}
-                  className="w-full min-h-[64px] rounded-2xl bg-primary hover:bg-primary-dark text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary disabled:opacity-50 touch-manipulation"
+                  className="w-full min-h-[64px] rounded-2xl bg-brand-forest hover:bg-brand-forest/90 text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest disabled:opacity-50 touch-manipulation"
                 >
                   <CheckCircle2 size={18} aria-hidden="true" />
                   <span>{confirmLabel}</span>

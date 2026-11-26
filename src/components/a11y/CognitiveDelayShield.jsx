@@ -93,7 +93,7 @@ export default function CognitiveDelayShield({
 
   return (
     <div
-      className="flex flex-col gap-4 text-gray-800 text-left"
+      className="flex flex-col gap-4 text-brand-charcoal text-left"
       role="region"
       aria-label={`Ringkasan telaah transaksi ${transactionType}`}
     >
@@ -102,7 +102,7 @@ export default function CognitiveDelayShield({
         <div
           className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
             isReady
-              ? 'bg-green-50 border-green-300 text-secondary-dark'
+              ? 'bg-brand-emerald/10 border-brand-emerald/30 text-brand-emerald'
               : 'bg-amber-50 border-amber-300 text-amber-900'
           }`}
           role="status"
@@ -111,7 +111,7 @@ export default function CognitiveDelayShield({
           <div className="flex items-center gap-2.5">
             <div
               className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold ${
-                isReady ? 'bg-green-200 text-secondary-dark' : 'bg-amber-200 text-amber-900 animate-pulse'
+                isReady ? 'bg-brand-emerald/20 text-brand-emerald' : 'bg-amber-200 text-amber-900 animate-pulse'
               }`}
             >
               {isReady ? <CheckCircle2 size={18} /> : <Clock size={18} />}
@@ -139,49 +139,49 @@ export default function CognitiveDelayShield({
       )}
 
       {/* Rincian Transaksi */}
-      <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-2.5 text-xs sm:text-sm">
+      <div className="bg-brand-cream/60 p-4 rounded-2xl border border-brand-border space-y-2.5 text-xs sm:text-sm">
         <div className="flex justify-between">
-          <span className="text-gray-500 font-medium">Jenis Transaksi:</span>
-          <span className="font-bold text-gray-900">{transactionType}</span>
+          <span className="text-brand-muted font-medium">Jenis Transaksi</span>
+          <span className="font-bold text-brand-charcoal">{transactionType}</span>
         </div>
 
         <div className="flex justify-between">
-          <span className="text-gray-500 font-medium">Tujuan / Pihak Terkait:</span>
-          <span className="font-bold text-gray-900 text-right">{targetName}</span>
+          <span className="text-brand-muted font-medium">Tujuan / Pihak Terkait</span>
+          <span className="font-bold text-brand-charcoal text-right">{targetName}</span>
         </div>
 
         {targetPhoneMasked && (
           <div className="flex justify-between">
-            <span className="text-gray-500 font-medium">Nomor Handphone:</span>
-            <span className="font-mono text-gray-700">{targetPhoneMasked}</span>
+            <span className="text-brand-muted font-medium">Nomor Handphone</span>
+            <span className="font-mono text-brand-charcoal">{targetPhoneMasked}</span>
           </div>
         )}
 
         {notes && notes !== '-' && (
           <div className="flex justify-between">
-            <span className="text-gray-500 font-medium">Catatan:</span>
-            <span className="italic text-gray-700">{notes}</span>
+            <span className="text-brand-muted font-medium">Catatan</span>
+            <span className="italic text-brand-charcoal">{notes}</span>
           </div>
         )}
 
-        <div className="flex justify-between border-t border-gray-200 pt-2 font-semibold">
-          <span className="text-gray-600">Nominal:</span>
-          <span className="font-bold text-gray-900">{formatRupiah(amount)}</span>
+        <div className="flex justify-between border-t border-brand-border pt-2 font-semibold">
+          <span className="text-brand-muted">Nominal</span>
+          <span className="font-bold text-brand-charcoal tabular-nums">{formatRupiah(amount)}</span>
         </div>
 
         <div className="flex justify-between">
-          <span className="text-gray-600">Biaya Admin:</span>
-          <span className="font-semibold text-secondary-dark">{formatRupiah(adminFee)} (Gratis)</span>
+          <span className="text-brand-muted">Biaya Admin</span>
+          <span className="font-semibold text-brand-emerald">{formatRupiah(adminFee)} (Gratis)</span>
         </div>
 
-        <div className="flex justify-between border-t border-gray-200 pt-2 font-bold text-sm">
-          <span className="text-gray-900">Total Potong Saldo:</span>
-          <span className="font-extrabold text-primary text-base">{formatRupiah(totalDebit)}</span>
+        <div className="flex justify-between border-t border-brand-border pt-2 font-bold text-sm">
+          <span className="text-brand-charcoal">Total Potong Saldo</span>
+          <span className="font-extrabold text-brand-forest text-base tabular-nums">{formatRupiah(totalDebit)}</span>
         </div>
 
-        <div className="flex justify-between text-[11px] text-gray-500 pt-1">
-          <span>Perkiraan Sisa Saldo:</span>
-          <span className="font-bold text-secondary-dark">{formatRupiah(remainingBalance)}</span>
+        <div className="flex justify-between text-[11px] text-brand-muted pt-1">
+          <span>Perkiraan Sisa Saldo</span>
+          <span className="font-bold text-brand-emerald tabular-nums">{formatRupiah(remainingBalance)}</span>
         </div>
       </div>
 

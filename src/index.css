@@ -1,25 +1,229 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ===== Focus Visible - Indikator fokus keyboard yang tegas ===== */
-*:focus-visible {
-  outline: 3px solid #E53935;
-  outline-offset: 2px;
-  border-radius: 4px;
+/* ============================================================
+   SAHABATPAY GLOBAL DESIGN SYSTEM
+   ============================================================ */
+
+/* ===== Base Reset & Typography ===== */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: #F4F1E8;
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    color: #252B2A;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Keyboard focus ring — Forest Green brand color */
+  *:focus-visible {
+    outline: 2.5px solid #123D35;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Smooth scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #E5E8E2;
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #78827D;
+  }
+
+  /* Number / balance figures */
+  .font-mono-numeric {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
 }
 
-/* ===== Scrollbar halus ===== */
-html {
-  scroll-behavior: smooth;
+/* ============================================================
+   COMPONENT LAYER — reusable utility classes
+   ============================================================ */
+@layer components {
+
+  /* --- Brand balance card gradient --- */
+  .balance-card {
+    background: linear-gradient(135deg, #123D35 0%, #176B55 100%);
+  }
+
+  /* --- Card base styles --- */
+  .sp-card {
+    @apply bg-white rounded-2xl border border-brand-border shadow-card;
+  }
+  .sp-card-hover {
+    @apply sp-card transition-all duration-200 hover:shadow-card-md hover:border-brand-muted/30 cursor-pointer;
+  }
+
+  /* --- Input base --- */
+  .sp-input {
+    @apply w-full rounded-xl border border-brand-border bg-white text-brand-charcoal
+           px-4 py-3 text-base min-h-[48px]
+           transition-all duration-200
+           focus:outline-none focus:border-brand-forest focus:ring-2 focus:ring-brand-forest/20
+           placeholder:text-brand-muted/60
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .sp-input-error {
+    @apply border-brand-coral bg-brand-coral/5 focus:border-brand-coral focus:ring-brand-coral/20;
+  }
+  .sp-input-easy {
+    @apply py-4 text-lg min-h-[64px];
+  }
+
+  /* --- Button base variants (used as base for Button.jsx overrides) --- */
+  .sp-btn {
+    @apply inline-flex items-center justify-center gap-2
+           font-semibold rounded-xl
+           transition-all duration-200
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed
+           select-none;
+  }
+  .sp-btn-primary {
+    @apply sp-btn bg-brand-forest text-white
+           hover:bg-brand-forest/90 active:scale-[0.98]
+           focus-visible:ring-brand-forest
+           shadow-sm;
+  }
+  .sp-btn-secondary {
+    @apply sp-btn bg-brand-emerald text-white
+           hover:bg-brand-emerald/90 active:scale-[0.98]
+           focus-visible:ring-brand-emerald
+           shadow-sm;
+  }
+  .sp-btn-outline {
+    @apply sp-btn border-2 border-brand-forest text-brand-forest bg-transparent
+           hover:bg-brand-forest hover:text-white active:scale-[0.98]
+           focus-visible:ring-brand-forest;
+  }
+  .sp-btn-ghost {
+    @apply sp-btn text-brand-charcoal bg-transparent
+           hover:bg-brand-forest/8 active:scale-[0.98]
+           focus-visible:ring-brand-forest;
+  }
+  .sp-btn-danger {
+    @apply sp-btn bg-brand-coral text-white
+           hover:bg-brand-coral/90 active:scale-[0.98]
+           focus-visible:ring-brand-coral
+           shadow-sm;
+  }
+
+  /* --- Nav active state --- */
+  .nav-active {
+    @apply text-brand-forest font-semibold;
+  }
+  .nav-inactive {
+    @apply text-brand-muted hover:text-brand-charcoal;
+  }
+
+  /* --- Section heading --- */
+  .sp-section-heading {
+    @apply font-bold text-brand-charcoal text-base;
+  }
+
+  /* --- Badge --- */
+  .sp-badge-green {
+    @apply inline-flex items-center gap-1 text-xs font-semibold
+           bg-brand-emerald/10 text-brand-emerald
+           px-2.5 py-0.5 rounded-full;
+  }
+  .sp-badge-coral {
+    @apply inline-flex items-center gap-1 text-xs font-semibold
+           bg-brand-coral/10 text-brand-coral
+           px-2.5 py-0.5 rounded-full;
+  }
+  .sp-badge-amber {
+    @apply inline-flex items-center gap-1 text-xs font-semibold
+           bg-amber-100 text-amber-700
+           px-2.5 py-0.5 rounded-full;
+  }
+  .sp-badge-forest {
+    @apply inline-flex items-center gap-1 text-xs font-semibold
+           bg-brand-forest/10 text-brand-forest
+           px-2.5 py-0.5 rounded-full;
+  }
+
+  /* --- Alert boxes --- */
+  .sp-alert-error {
+    @apply p-3 bg-brand-coral/8 border border-brand-coral/30 rounded-xl
+           text-brand-coral text-sm font-medium;
+  }
+  .sp-alert-success {
+    @apply p-3 bg-brand-emerald/8 border border-brand-emerald/30 rounded-xl
+           text-brand-emerald text-sm font-medium;
+  }
+  .sp-alert-warning {
+    @apply p-3 bg-amber-50 border border-amber-200 rounded-xl
+           text-amber-800 text-sm font-medium;
+  }
+  .sp-alert-info {
+    @apply p-3 bg-brand-forest/8 border border-brand-forest/20 rounded-xl
+           text-brand-forest text-sm font-medium;
+  }
 }
 
-/* ===== Base typography ===== */
-body {
-  min-height: 100vh;
-}
+/* ============================================================
+   UTILITY LAYER
+   ============================================================ */
+@layer utilities {
+  .transition-default {
+    @apply transition-all duration-200 ease-in-out;
+  }
 
-/* ===== Animasi transisi halus ===== */
-.transition-default {
-  @apply transition-all duration-200 ease-in-out;
+  /* Animate fade-in on mount */
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out both;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.25s ease-out both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Balance number tabular */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* Thin-green focus ring override for white backgrounds */
+  .focus-ring-white:focus-visible {
+    outline: 2.5px solid #FFFFFF;
+    outline-offset: 2px;
+  }
+
+  /* Easy mode minimum touch target */
+  .touch-target-64 {
+    min-height: 64px;
+    min-width: 64px;
+  }
 }

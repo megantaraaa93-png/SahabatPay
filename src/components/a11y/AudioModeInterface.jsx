@@ -351,16 +351,16 @@ export default function AudioModeInterface() {
   };
 
   const statusColors = {
-    ready: 'bg-slate-800 border-slate-600',
-    listening: 'bg-red-900/80 border-red-500',
-    processing: 'bg-amber-900/80 border-amber-500',
-    response: 'bg-green-900/80 border-green-500',
-    error: 'bg-red-950 border-red-700',
+    ready: 'bg-brand-forest/90 border-brand-emerald/60',
+    listening: 'bg-brand-coral/90 border-brand-coral',
+    processing: 'bg-amber-900/90 border-amber-400',
+    response: 'bg-brand-emerald/90 border-emerald-400',
+    error: 'bg-red-950 border-brand-coral',
   };
 
   return (
     <main
-      className="fixed inset-0 z-[100] h-[100dvh] overflow-hidden bg-[#050816] text-white flex flex-col"
+      className="fixed inset-0 z-[100] h-[100dvh] overflow-hidden bg-[#0A1F1B] text-white flex flex-col"
       aria-label="Antarmuka Mode Audio SahabatPay"
     >
       {/* LAYAR ATAS (50%): Zona Informasi & Tombol Sahabat */}
@@ -427,14 +427,14 @@ export default function AudioModeInterface() {
           onPointerUp={handleFriendPointerUp}
           onPointerLeave={handleFriendPointerUp}
           onPointerCancel={handleFriendPointerUp}
-          className="flex-1 min-h-0 w-full rounded-3xl bg-[#C62828] hover:bg-[#B71C1C] active:bg-[#8E1717] border-4 border-[#FF8A80] shadow-lg flex flex-col items-center justify-center gap-1.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-white focus-visible:outline-offset-2 transition-colors select-none touch-manipulation"
+          className="flex-1 min-h-0 w-full rounded-3xl bg-brand-coral hover:bg-brand-coral/90 active:scale-[0.99] border-4 border-white/60 shadow-lg flex flex-col items-center justify-center gap-1.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-white focus-visible:outline-offset-2 transition-all select-none touch-manipulation"
           aria-label="Tombol Sahabat. Tekan untuk mendengar panduan. Tahan untuk menghentikan suara. Tahan lebih lama untuk kembali ke pemilihan mode."
         >
           <Hand size={40} strokeWidth={2.5} aria-hidden="true" />
           <span className="text-lg sm:text-2xl font-black text-center px-2">
             TOMBOL SAHABAT
           </span>
-          <span className="text-red-100 text-xs sm:text-sm text-center px-3">
+          <span className="text-white/90 text-xs sm:text-sm text-center px-3">
             Ketuk 1x: Panduan • 2x: Menu • Tahan: Hentikan Suara
           </span>
         </button>
@@ -455,10 +455,10 @@ export default function AudioModeInterface() {
           onKeyUp={handleMicKeyUp}
           onBlur={handleMicStop}
           disabled={!isSupported || isPinActive}
-          className={`flex-1 min-h-0 w-full rounded-3xl border-4 shadow-lg flex flex-col items-center justify-center gap-2 focus-visible:outline focus-visible:outline-4 focus-visible:outline-white focus-visible:outline-offset-2 transition-colors select-none touch-manipulation ${
+          className={`flex-1 min-h-0 w-full rounded-3xl border-4 shadow-lg flex flex-col items-center justify-center gap-2 focus-visible:outline focus-visible:outline-4 focus-visible:outline-white focus-visible:outline-offset-2 transition-all select-none touch-manipulation ${
             isListening
-              ? 'bg-[#B71C1C] border-red-300 animate-pulse'
-              : 'bg-[#15803D] hover:bg-[#166534] active:bg-[#14532D] border-[#86EFAC]'
+              ? 'bg-brand-coral border-white animate-pulse'
+              : 'bg-brand-emerald hover:bg-brand-emerald/90 active:scale-[0.99] border-emerald-300'
           } disabled:bg-slate-700 disabled:border-slate-500 disabled:cursor-not-allowed`}
           aria-label={
             isListening

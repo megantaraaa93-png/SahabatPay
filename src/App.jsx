@@ -22,6 +22,7 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import { VerificationGuard, SetupPinGuard } from './components/common/OnboardingGuard';
 import VoiceCommandButton from './components/a11y/VoiceCommandButton';
 import AudioModeInterface from './components/a11y/AudioModeInterface';
+import VoiceTransactionModal from './components/a11y/VoiceTransactionModal';
 import { useA11y } from './context/A11yContext';
 
 function App() {
@@ -184,6 +185,9 @@ function App() {
 
       {/* Interface khusus Audio Mode */}
       {isAudioMode && <AudioModeInterface />}
+
+      {/* Modal / Overlay Transaksi Suara & Keypad PIN Aman */}
+      <VoiceTransactionModal />
     </>
   );
 }

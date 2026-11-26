@@ -180,14 +180,14 @@ export default function PressAndHoldButton({
       onPointerMove={handlePointerMove}
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
-      className={`relative overflow-hidden select-none font-bold rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
+      className={`relative overflow-hidden select-none font-bold rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest focus-visible:ring-offset-2 ${
         isEasyMode ? 'min-h-[64px] text-lg px-6' : 'min-h-[50px] text-sm px-4'
       } ${
         disabled
           ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
           : variant === 'secondary'
-          ? 'bg-secondary hover:bg-secondary-dark text-white'
-          : 'bg-primary hover:bg-primary-dark text-white'
+          ? 'bg-brand-emerald hover:bg-brand-emerald/90 text-white'
+          : 'bg-brand-forest hover:bg-brand-forest/90 text-white'
       } ${className}`}
       aria-label={
         enabled

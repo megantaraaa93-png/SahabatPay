@@ -240,8 +240,8 @@ export default function RecipientsPage() {
       <div className="flex items-center justify-between">
         <button
           onClick={() => { stopSpeech(); navigate('/transfer'); }}
-          className={`inline-flex items-center gap-2 font-semibold text-gray-700 hover:text-primary transition-default rounded-xl border border-gray-300 bg-white p-2 focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
-            isEasyMode ? 'min-h-[52px] px-4 text-base' : 'text-sm px-3'
+          className={`inline-flex items-center gap-2 font-semibold text-brand-charcoal hover:text-brand-forest transition-default rounded-xl border border-brand-border bg-white shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+            isEasyMode ? 'min-h-[64px] px-5 text-base' : 'min-h-[42px] text-sm px-3.5'
           }`}
           aria-label="Kembali ke halaman Transfer"
         >
@@ -249,7 +249,7 @@ export default function RecipientsPage() {
           <span>Transfer</span>
         </button>
 
-        <h1 className={`font-bold text-gray-900 ${isEasyMode ? 'text-2xl' : 'text-xl'}`}>
+        <h1 className={`font-extrabold text-brand-charcoal ${isEasyMode ? 'text-2xl' : 'text-xl'}`}>
           Daftar Penerima
         </h1>
 
@@ -265,23 +265,23 @@ export default function RecipientsPage() {
       </div>
 
       {/* Kartu Statistik */}
-      <Card className="!p-4 bg-gradient-to-r from-primary to-red-500 text-white !border-0 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center" aria-hidden="true">
+      <div className="balance-card rounded-2xl p-5 text-white shadow-balance">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center" aria-hidden="true">
             <Users size={22} />
           </div>
           <div>
-            <p className="text-xs text-white/90 font-medium">Penerima Tersimpan</p>
-            <p className="text-2xl font-extrabold" aria-live="polite">{recipients.length} Kontak</p>
+            <p className="text-xs text-white/75 font-medium">Penerima Tersimpan</p>
+            <p className="text-2xl font-extrabold tabular-nums" aria-live="polite">{recipients.length} Kontak</p>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Search */}
       <div className="relative">
         <Search
           size={16}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted"
           aria-hidden="true"
         />
         <label htmlFor="recipient-search" className="sr-only">Cari penerima</label>
@@ -291,8 +291,8 @@ export default function RecipientsPage() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Cari nama atau nomor penerima..."
-          className={`w-full pl-10 pr-4 rounded-2xl border border-gray-200 bg-white focus:ring-2 focus:ring-primary focus:border-primary transition-default ${
-            isEasyMode ? 'py-4 text-base min-h-[56px]' : 'py-3 text-sm'
+          className={`w-full pl-10 pr-4 rounded-xl border border-brand-border bg-white text-brand-charcoal focus:outline-none focus:ring-2 focus:ring-brand-forest/20 focus:border-brand-forest placeholder:text-brand-muted/60 transition-default ${
+            isEasyMode ? 'py-4 text-base min-h-[64px]' : 'py-3 text-sm min-h-[46px]'
           }`}
         />
       </div>
@@ -302,12 +302,12 @@ export default function RecipientsPage() {
         <h2 id="heading-recipients-list" className="sr-only">Daftar penerima tersimpan</h2>
 
         {filteredRecipients.length === 0 ? (
-          <Card className="!p-8 text-center bg-gray-50 border-dashed">
-            <Users size={36} className="text-gray-300 mx-auto mb-3" aria-hidden="true" />
-            <p className="font-semibold text-gray-500 text-sm">
+          <Card className="!p-8 text-center bg-white border-dashed border-brand-border">
+            <Users size={36} className="text-brand-muted/40 mx-auto mb-3" aria-hidden="true" />
+            <p className="font-semibold text-brand-charcoal text-sm">
               {searchQuery ? 'Penerima tidak ditemukan.' : 'Belum ada penerima tersimpan.'}
             </p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-brand-muted mt-1">
               {searchQuery
                 ? 'Coba kata kunci lain atau tambahkan penerima baru.'
                 : 'Tambahkan penerima transfer yang sering Anda gunakan.'}
@@ -329,12 +329,12 @@ export default function RecipientsPage() {
             {filteredRecipients.map((recipient) => (
               <Card
                 key={recipient.id}
-                className="!p-4 bg-white border-gray-200 shadow-sm hover:border-primary/40 transition-default"
+                className="!p-4 bg-white border-brand-border shadow-card hover:border-brand-forest/40 transition-default"
               >
                 <div className="flex items-center gap-3">
                   {/* Avatar */}
                   <div
-                    className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-base shrink-0"
+                    className="w-11 h-11 rounded-xl bg-brand-forest/10 text-brand-forest flex items-center justify-center font-bold text-base shrink-0"
                     aria-hidden="true"
                   >
                     {recipient.alias.charAt(0).toUpperCase()}
@@ -343,19 +343,19 @@ export default function RecipientsPage() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className={`font-bold text-gray-900 truncate ${isEasyMode ? 'text-base' : 'text-sm'}`}>
+                      <p className={`font-bold text-brand-charcoal truncate ${isEasyMode ? 'text-base' : 'text-sm'}`}>
                         {recipient.alias}
                       </p>
                       {recipient.isDemo && (
-                        <span className="text-[10px] bg-amber-100 text-amber-800 border border-amber-200 font-semibold px-1.5 py-0.5 rounded">
+                        <span className="sp-badge-amber text-[10px]">
                           Penerima Simulasi
                         </span>
                       )}
                     </div>
                     {recipient.alias !== recipient.name && recipient.name && (
-                      <p className="text-xs text-gray-500 truncate">{recipient.name}</p>
+                      <p className="text-xs text-brand-muted truncate">{recipient.name}</p>
                     )}
-                    <p className="text-xs text-gray-500 font-mono mt-0.5 flex items-center gap-1">
+                    <p className="text-xs text-brand-muted font-mono mt-0.5 flex items-center gap-1">
                       <Phone size={11} aria-hidden="true" />
                       {maskPhoneNumber(recipient.phone)}
                     </p>
@@ -374,8 +374,8 @@ export default function RecipientsPage() {
                       onClick={() => {
                         navigate('/transfer', { state: { preselectedRecipient: recipient } });
                       }}
-                      className={`p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-                        isEasyMode ? 'p-3' : ''
+                      className={`p-2 rounded-xl bg-brand-forest/10 text-brand-forest hover:bg-brand-forest/20 transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+                        isEasyMode ? 'p-3.5 min-h-[48px] min-w-[48px]' : ''
                       }`}
                       aria-label={
                         recipient.isDemo
@@ -390,8 +390,8 @@ export default function RecipientsPage() {
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(recipient)}
-                      className={`p-2 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-                        isEasyMode ? 'p-3' : ''
+                      className={`p-2 rounded-xl bg-brand-cream text-brand-charcoal hover:bg-brand-border/60 transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+                        isEasyMode ? 'p-3.5 min-h-[48px] min-w-[48px]' : ''
                       }`}
                       aria-label={`Edit alias ${recipient.alias}`}
                     >
@@ -402,8 +402,8 @@ export default function RecipientsPage() {
                     <button
                       type="button"
                       onClick={() => setDeleteTarget({ id: recipient.id, alias: recipient.alias })}
-                      className={`p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-                        isEasyMode ? 'p-3' : ''
+                      className={`p-2 rounded-xl bg-brand-coral/10 text-brand-coral hover:bg-brand-coral/20 transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-coral ${
+                        isEasyMode ? 'p-3.5 min-h-[48px] min-w-[48px]' : ''
                       }`}
                       aria-label={`Hapus penerima ${recipient.alias}`}
                     >
@@ -412,7 +412,7 @@ export default function RecipientsPage() {
                   </div>
                 </div>
 
-                <p className="text-[10px] text-gray-400 mt-2 flex items-center gap-1">
+                <p className="text-[10px] text-brand-muted/70 mt-2 flex items-center gap-1">
                   <Clock size={10} aria-hidden="true" />
                   Ditambahkan {formatTanggal(recipient.createdAt)}
                 </p>
@@ -436,20 +436,20 @@ export default function RecipientsPage() {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="add-phone-search"
-              className={`font-semibold text-gray-800 ${isEasyMode ? 'text-base' : 'text-sm'}`}
+              className={`font-semibold text-brand-charcoal ${isEasyMode ? 'text-base' : 'text-sm'}`}
             >
               Cari Pengguna Terdaftar / Nomor Telepon
             </label>
             <div className="relative">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted" aria-hidden="true" />
               <input
                 id="add-phone-search"
                 type="text"
                 value={addPhoneQuery}
                 onChange={(e) => { setAddPhoneQuery(e.target.value); setAddError(''); }}
                 placeholder="Nama pengguna atau nomor HP (min. 9 digit)..."
-                className={`w-full pl-9 pr-3 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-primary focus:border-primary transition-default ${
-                  isEasyMode ? 'py-3.5 text-base min-h-[56px]' : 'py-2.5 text-sm'
+                className={`w-full pl-9 pr-3 rounded-xl border border-brand-border bg-white text-brand-charcoal focus:outline-none focus:ring-2 focus:ring-brand-forest/20 focus:border-brand-forest transition-default ${
+                  isEasyMode ? 'py-3.5 text-base min-h-[64px]' : 'py-2.5 text-sm min-h-[46px]'
                 }`}
                 autoComplete="off"
                 required
@@ -458,9 +458,9 @@ export default function RecipientsPage() {
 
             {/* Hasil pencarian pengguna terdaftar */}
             {addPhoneQuery.trim().length >= 2 && (
-              <div className="flex flex-col gap-1.5 max-h-44 overflow-y-auto rounded-xl border border-gray-200 bg-gray-50 p-1.5">
+              <div className="flex flex-col gap-1.5 max-h-44 overflow-y-auto rounded-xl border border-brand-border bg-brand-cream/40 p-1.5">
                 {filteredRegisteredUsers.length === 0 ? (
-                  <p className="text-xs text-gray-600 text-center py-2 px-2">
+                  <p className="text-xs text-brand-muted text-center py-2 px-2">
                     Tidak ada pengguna terdaftar yang cocok. Masukkan nomor HP minimal 9 digit dan isi alias di bawah untuk menyimpan sebagai penerima simulasi.
                   </p>
                 ) : (
@@ -469,19 +469,19 @@ export default function RecipientsPage() {
                       key={u.phone}
                       type="button"
                       onClick={() => handleSelectFromRegistered(u)}
-                      className={`w-full text-left px-3 py-2 rounded-lg bg-white border border-gray-200 hover:border-primary hover:bg-red-50 transition-default flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-                        addPhoneQuery === u.phone ? 'border-primary bg-red-50' : ''
+                      className={`w-full text-left px-3 py-2 rounded-lg bg-white border border-brand-border hover:border-brand-forest hover:bg-brand-forest/5 transition-default flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+                        addPhoneQuery === u.phone ? 'border-brand-forest bg-brand-forest/5' : ''
                       }`}
                     >
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-brand-forest/10 text-brand-forest flex items-center justify-center font-bold text-sm shrink-0">
                         {(u.name || '?').charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{u.name}</p>
-                        <p className="text-xs text-gray-500 font-mono">{maskPhoneNumber(u.phone)}</p>
+                        <p className="text-sm font-semibold text-brand-charcoal truncate">{u.name}</p>
+                        <p className="text-xs text-brand-muted font-mono">{maskPhoneNumber(u.phone)}</p>
                       </div>
                       {addPhoneQuery === u.phone && (
-                        <CheckCircle2 size={16} className="text-primary ml-auto shrink-0" />
+                        <CheckCircle2 size={16} className="text-brand-forest ml-auto shrink-0" />
                       )}
                     </button>
                   ))
@@ -492,7 +492,7 @@ export default function RecipientsPage() {
             {/* Keterangan penerima eksternal simulasi */}
             {isExternalCandidate && (
               <div
-                className="p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs font-medium flex items-start gap-2"
+                className="sp-alert-warning text-xs flex items-start gap-2"
                 role="status"
                 aria-live="polite"
               >
@@ -509,7 +509,7 @@ export default function RecipientsPage() {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="add-alias"
-              className={`font-semibold text-gray-800 ${isEasyMode ? 'text-base' : 'text-sm'}`}
+              className={`font-semibold text-brand-charcoal ${isEasyMode ? 'text-base' : 'text-sm'}`}
             >
               Nama/Alias untuk Disimpan
             </label>
@@ -520,8 +520,8 @@ export default function RecipientsPage() {
               onChange={(e) => setAddAlias(e.target.value)}
               placeholder="Contoh: Ibu, Budi Kerja, Adik..."
               maxLength={50}
-              className={`w-full rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-primary focus:border-primary transition-default px-3 ${
-                isEasyMode ? 'py-3.5 text-base min-h-[56px]' : 'py-2.5 text-sm'
+              className={`w-full rounded-xl border border-brand-border bg-white text-brand-charcoal focus:outline-none focus:ring-2 focus:ring-brand-forest/20 focus:border-brand-forest transition-default px-3 ${
+                isEasyMode ? 'py-3.5 text-base min-h-[64px]' : 'py-2.5 text-sm min-h-[46px]'
               }`}
               autoComplete="off"
               required
@@ -530,14 +530,14 @@ export default function RecipientsPage() {
 
           {/* Pesan Error / Sukses */}
           {addError && (
-            <div className="p-3 bg-red-50 border border-red-300 rounded-xl text-red-900 text-xs font-medium flex items-start gap-2" role="alert">
-              <AlertCircle size={15} className="shrink-0 text-red-600 mt-0.5" aria-hidden="true" />
+            <div className="sp-alert-error text-xs flex items-start gap-2" role="alert">
+              <AlertCircle size={15} className="shrink-0 text-brand-coral mt-0.5" aria-hidden="true" />
               <p>{addError}</p>
             </div>
           )}
           {addSuccess && (
-            <div className="p-3 bg-green-50 border border-green-300 rounded-xl text-green-900 text-xs font-medium flex items-start gap-2" role="status">
-              <CheckCircle2 size={15} className="shrink-0 text-secondary-dark mt-0.5" aria-hidden="true" />
+            <div className="sp-alert-success text-xs flex items-start gap-2" role="status">
+              <CheckCircle2 size={15} className="shrink-0 text-brand-emerald mt-0.5" aria-hidden="true" />
               <p>{addSuccess}</p>
             </div>
           )}
@@ -579,7 +579,7 @@ export default function RecipientsPage() {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="edit-alias"
-              className={`font-semibold text-gray-800 ${isEasyMode ? 'text-base' : 'text-sm'}`}
+              className={`font-semibold text-brand-charcoal ${isEasyMode ? 'text-base' : 'text-sm'}`}
             >
               Nama/Alias Baru
             </label>
@@ -589,16 +589,16 @@ export default function RecipientsPage() {
               value={editAlias}
               onChange={(e) => { setEditAlias(e.target.value); setEditError(''); }}
               maxLength={50}
-              className={`w-full rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-primary focus:border-primary transition-default px-3 ${
-                isEasyMode ? 'py-3.5 text-base min-h-[56px]' : 'py-2.5 text-sm'
+              className={`w-full rounded-xl border border-brand-border bg-white text-brand-charcoal focus:outline-none focus:ring-2 focus:ring-brand-forest/20 focus:border-brand-forest transition-default px-3 ${
+                isEasyMode ? 'py-3.5 text-base min-h-[64px]' : 'py-2.5 text-sm min-h-[46px]'
               }`}
               required
             />
           </div>
 
           {editError && (
-            <div className="p-3 bg-red-50 border border-red-300 rounded-xl text-red-900 text-xs font-medium flex items-start gap-2" role="alert">
-              <AlertCircle size={15} className="shrink-0 text-red-600 mt-0.5" aria-hidden="true" />
+            <div className="sp-alert-error text-xs flex items-start gap-2" role="alert">
+              <AlertCircle size={15} className="shrink-0 text-brand-coral mt-0.5" aria-hidden="true" />
               <p>{editError}</p>
             </div>
           )}
@@ -625,13 +625,13 @@ export default function RecipientsPage() {
       >
         {deleteTarget && (
           <div className="flex flex-col gap-4">
-            <div className="bg-red-50 border border-red-200 p-3.5 rounded-xl flex items-start gap-3">
-              <Trash2 size={20} className="text-red-500 shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="sp-alert-error flex items-start gap-3">
+              <Trash2 size={20} className="text-brand-coral shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                <p className={`font-bold text-gray-900 ${isEasyMode ? 'text-base' : 'text-sm'}`}>
+                <p className={`font-bold text-brand-charcoal ${isEasyMode ? 'text-base' : 'text-sm'}`}>
                   Hapus "{deleteTarget.alias}"?
                 </p>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-brand-muted mt-1">
                   Penerima ini akan dihapus dari daftar Anda. Tindakan ini tidak memengaruhi riwayat transaksi yang sudah ada.
                 </p>
               </div>
@@ -643,9 +643,10 @@ export default function RecipientsPage() {
               </Button>
               <Button
                 type="button"
+                variant="danger"
                 size={isEasyMode ? 'lg' : 'md'}
                 onClick={handleConfirmDelete}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                className="flex-1"
                 icon={<Trash2 size={16} />}
               >
                 Ya, Hapus

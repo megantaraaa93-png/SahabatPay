@@ -301,8 +301,8 @@ export default function TransferPage() {
             stopSpeech();
             navigate('/dashboard');
           }}
-          className={`inline-flex items-center gap-2 font-semibold text-gray-700 hover:text-primary transition-default rounded-xl border border-gray-300 bg-white p-2 focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
-            isEasyMode ? 'min-h-[52px] px-4 text-base' : 'text-sm px-3'
+          className={`inline-flex items-center gap-2 font-semibold text-brand-charcoal hover:text-brand-forest transition-default rounded-xl border border-brand-border bg-white shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+            isEasyMode ? 'min-h-[64px] px-5 text-base' : 'min-h-[42px] text-sm px-3.5'
           }`}
           aria-label="Kembali ke Beranda"
         >
@@ -310,25 +310,25 @@ export default function TransferPage() {
           <span>Kembali</span>
         </button>
 
-        <span className="text-xs font-semibold text-primary bg-red-50 border border-red-200 py-1 px-3 rounded-full">
+        <span className="sp-badge-forest py-1.5 px-3">
           Transfer Saldo
         </span>
       </div>
 
       {/* Kartu Saldo Tersedia */}
-      <Card className="!p-5 bg-gradient-to-r from-primary-dark to-primary text-white !border-0 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center text-white" aria-hidden="true">
+      <div className="balance-card rounded-2xl p-5 text-white shadow-balance">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center text-white" aria-hidden="true">
             <Wallet size={24} />
           </div>
           <div>
-            <p className="text-xs text-white/80 font-medium">Saldo SahabatPay Tersedia</p>
-            <p className="text-2xl font-extrabold tracking-tight" aria-live="polite">
+            <p className="text-xs text-white/75 font-medium">Saldo SahabatPay Tersedia</p>
+            <p className="text-2xl font-extrabold tracking-tight tabular-nums mt-0.5" aria-live="polite">
               {formatRupiah(balance)}
             </p>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Form Utama Transfer */}
       <form onSubmit={handleOpenReview} noValidate className="flex flex-col gap-5">
@@ -337,14 +337,14 @@ export default function TransferPage() {
           <div className="flex items-center justify-between mb-2.5">
             <h2
               id="heading-recipient"
-              className={`font-bold text-gray-900 ${isEasyMode ? 'text-xl' : 'text-base'}`}
+              className={`font-bold text-brand-charcoal ${isEasyMode ? 'text-xl' : 'text-base'}`}
             >
               1. Pilih Akun Penerima
             </h2>
             <button
               type="button"
               onClick={() => navigate('/recipients')}
-              className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary rounded"
+              className="text-xs font-semibold text-brand-forest hover:underline flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest rounded px-1.5 py-1"
               aria-label="Kelola daftar penerima tersimpan"
             >
               <BookUser size={13} aria-hidden="true" />
@@ -354,25 +354,25 @@ export default function TransferPage() {
 
           {/* Notifikasi simpan */}
           {saveNotif && (
-            <div className="mb-2 p-2.5 bg-green-50 border border-green-200 rounded-xl text-xs text-green-800 font-medium flex items-center gap-2" role="status">
-              <CheckCircle2 size={14} className="text-secondary-dark shrink-0" aria-hidden="true" />
+            <div className="mb-2.5 sp-alert-success flex items-center gap-2 text-xs" role="status">
+              <CheckCircle2 size={14} className="text-brand-emerald shrink-0" aria-hidden="true" />
               {saveNotif}
             </div>
           )}
 
           {/* Tab Selector */}
-          <div className="flex gap-1 p-1 bg-gray-100 rounded-2xl border border-gray-200 mb-3" role="tablist">
+          <div className="flex gap-1 p-1 bg-white rounded-2xl border border-brand-border shadow-card mb-3" role="tablist">
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === 'saved'}
               onClick={() => { setActiveTab('saved'); setSearchQuery(''); }}
-              className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-                isEasyMode ? 'min-h-[52px] text-base' : ''
+              className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+                isEasyMode ? 'min-h-[64px] text-base' : ''
               } ${
                 activeTab === 'saved'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-brand-forest text-white shadow-sm'
+                  : 'text-brand-muted hover:text-brand-charcoal'
               }`}
             >
               <Star size={14} aria-hidden="true" />
@@ -383,12 +383,12 @@ export default function TransferPage() {
               role="tab"
               aria-selected={activeTab === 'all'}
               onClick={() => { setActiveTab('all'); setSearchQuery(''); }}
-              className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-                isEasyMode ? 'min-h-[52px] text-base' : ''
+              className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+                isEasyMode ? 'min-h-[64px] text-base' : ''
               } ${
                 activeTab === 'all'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-brand-forest text-white shadow-sm'
+                  : 'text-brand-muted hover:text-brand-charcoal'
               }`}
             >
               <Users size={14} aria-hidden="true" />
@@ -398,7 +398,7 @@ export default function TransferPage() {
 
           {/* Kotak Pencarian */}
           <div className="relative mb-3">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" aria-hidden="true">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted" aria-hidden="true">
               <Search size={18} />
             </span>
             <label htmlFor="transfer-recipient-search" className="sr-only">
@@ -410,41 +410,42 @@ export default function TransferPage() {
               placeholder={activeTab === 'saved' ? 'Cari nama tersimpan...' : 'Cari nama atau nomor HP...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full rounded-2xl border bg-white text-gray-900 pl-10 pr-4 transition-default focus:ring-2 focus:ring-primary focus:border-primary border-gray-300 ${
-                isEasyMode ? 'py-4 text-base min-h-[56px]' : 'py-2.5 text-sm'
+              className={`w-full rounded-xl border border-brand-border bg-white text-brand-charcoal pl-10 pr-4 transition-default focus:outline-none focus:ring-2 focus:ring-brand-forest/20 focus:border-brand-forest placeholder:text-brand-muted/60 ${
+                isEasyMode ? 'py-4 text-base min-h-[64px]' : 'py-2.5 text-sm min-h-[46px]'
               }`}
             />
           </div>
 
           {/* Penerima Terpilih (Highlight) */}
           {selectedRecipient && (
-            <div className="mb-3 p-3.5 bg-red-50/60 border border-primary rounded-2xl flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-bold">
+            <div className="mb-3 p-3.5 bg-brand-forest/5 border-2 border-brand-forest rounded-2xl flex items-center justify-between gap-2">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-brand-forest text-white flex items-center justify-center font-bold shrink-0">
                   {selectedRecipient.name?.charAt(0) || 'U'}
                 </div>
-                <div>
-                  <p className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
-                    {selectedRecipient.name}
+                <div className="min-w-0">
+                  <p className="font-bold text-brand-charcoal text-sm flex items-center gap-1.5 flex-wrap">
+                    <span className="truncate">{selectedRecipient.name}</span>
                     {selectedRecipient.isDemo && (
-                      <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-1.5 py-0.5 rounded">
+                      <span className="sp-badge-amber text-[10px]">
                         Akun Demo
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-gray-600 font-mono mt-0.5">
+                  <p className="text-xs text-brand-muted font-mono mt-0.5">
                     {maskPhoneNumber(selectedRecipient.phone)}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-primary px-2.5 py-1 bg-white rounded-lg border border-red-200">
-                  Terpilih ✓
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="sp-badge-green text-xs">
+                  <CheckCircle2 size={12} aria-hidden="true" />
+                  <span>Terpilih</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setSelectedRecipient(null)}
-                  className="text-xs text-gray-500 hover:text-gray-700 underline"
+                  className="text-xs text-brand-muted hover:text-brand-charcoal font-semibold underline px-1"
                   aria-label="Batalkan pilihan penerima"
                 >
                   Ubah
@@ -460,9 +461,9 @@ export default function TransferPage() {
             aria-label={activeTab === 'saved' ? 'Daftar penerima tersimpan' : 'Daftar semua pengguna terdaftar'}
           >
             {displayedRecipients.length === 0 ? (
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 text-center text-gray-600 text-sm">
-                <User size={28} className="mx-auto text-gray-400 mb-2" aria-hidden="true" />
-                <p className="font-semibold text-gray-800">
+              <div className="bg-white border border-brand-border rounded-2xl p-6 text-center text-brand-muted text-sm shadow-card">
+                <User size={28} className="mx-auto text-brand-muted/50 mb-2" aria-hidden="true" />
+                <p className="font-semibold text-brand-charcoal">
                   {activeTab === 'saved'
                     ? savedRecipients.length === 0
                       ? 'Belum ada penerima tersimpan'
@@ -473,7 +474,7 @@ export default function TransferPage() {
                   <button
                     type="button"
                     onClick={() => navigate('/recipients')}
-                    className="mt-2 text-xs text-primary font-semibold hover:underline"
+                    className="mt-2 text-xs text-brand-forest font-semibold hover:underline"
                   >
                     + Tambah penerima baru
                   </button>
@@ -493,39 +494,39 @@ export default function TransferPage() {
                       isEasyMode ? 'min-h-[64px] p-4' : 'min-h-[52px]'
                     } ${
                       isSelected
-                        ? 'bg-red-50 border-primary ring-2 ring-primary/20 shadow-sm'
-                        : 'bg-white border-gray-300 hover:border-gray-400'
+                        ? 'bg-brand-forest/5 border-brand-forest ring-2 ring-brand-forest/15 shadow-sm'
+                        : 'bg-white border-brand-border hover:border-brand-muted/40'
                     }`}
                   >
                     <button
                       type="button"
                       onClick={() => handleSelectRecipient(rec)}
-                      className="flex items-center gap-3 flex-1 text-left focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary rounded-xl"
+                      className="flex items-center gap-3 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest rounded-xl"
                       aria-pressed={isSelected}
                       aria-label={`Pilih ${displayName} sebagai penerima`}
                     >
                       <div
                         className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold shrink-0 ${
-                          isSelected ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700'
+                          isSelected ? 'bg-brand-forest text-white' : 'bg-brand-cream text-brand-forest'
                         }`}
                         aria-hidden="true"
                       >
                         {displayName?.charAt(0) || 'U'}
                       </div>
                       <div>
-                        <p className={`font-bold text-gray-900 flex items-center gap-1.5 ${isEasyMode ? 'text-base' : 'text-sm'}`}>
+                        <p className={`font-bold text-brand-charcoal flex items-center gap-1.5 ${isEasyMode ? 'text-base' : 'text-sm'}`}>
                           <span>{displayName}</span>
                           {rec.isDemo && (
-                            <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-1.5 py-0.5 rounded">
+                            <span className="sp-badge-amber text-[10px]">
                               Akun Demo
                             </span>
                           )}
                         </p>
-                        <p className={`text-gray-600 font-mono ${isEasyMode ? 'text-sm' : 'text-xs'}`}>
+                        <p className={`text-brand-muted font-mono ${isEasyMode ? 'text-sm' : 'text-xs'}`}>
                           {maskPhoneNumber(rec.phone)}
                         </p>
                         {activeTab === 'saved' && rec.name && rec.name !== rec.alias && (
-                          <p className="text-[10px] text-gray-400">{rec.name}</p>
+                          <p className="text-[10px] text-brand-muted/80">{rec.name}</p>
                         )}
                       </div>
                     </button>
@@ -536,10 +537,10 @@ export default function TransferPage() {
                         type="button"
                         onClick={() => handleSaveRecipient(rec)}
                         disabled={alreadySaved}
-                        className={`ml-2 p-1.5 rounded-lg text-xs font-semibold transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary shrink-0 ${
+                        className={`ml-2 p-2 rounded-xl text-xs font-semibold transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest shrink-0 ${
                           alreadySaved
-                            ? 'text-secondary-dark bg-green-50 border border-green-200 cursor-default'
-                            : 'text-primary bg-red-50 border border-red-200 hover:bg-red-100'
+                            ? 'text-brand-emerald bg-brand-emerald/10 border border-brand-emerald/20 cursor-default'
+                            : 'text-brand-forest bg-brand-forest/8 border border-brand-forest/20 hover:bg-brand-forest/15'
                         }`}
                         aria-label={alreadySaved ? `${rec.name} sudah tersimpan` : `Simpan ${rec.name} ke daftar penerima`}
                       >
@@ -557,7 +558,7 @@ export default function TransferPage() {
         <section aria-labelledby="heading-transfer-amount">
           <h2
             id="heading-transfer-amount"
-            className={`font-bold text-gray-900 mb-2 ${isEasyMode ? 'text-xl' : 'text-base'}`}
+            className={`font-bold text-brand-charcoal mb-2.5 ${isEasyMode ? 'text-xl' : 'text-base'}`}
           >
             2. Masukkan Nominal Transfer
           </h2>
@@ -575,12 +576,12 @@ export default function TransferPage() {
                     setErrorMessage('');
                     if (isAudioMode) speakText(`Nominal ${formatRupiah(preset)} dipilih.`);
                   }}
-                  className={`rounded-xl border font-bold transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
+                  className={`rounded-xl border font-bold transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest tabular-nums ${
                     isEasyMode ? 'min-h-[64px] text-base px-3' : 'min-h-[44px] text-xs px-2.5'
                   } ${
                     isSelected
-                      ? 'bg-primary text-white border-primary shadow-sm'
-                      : 'bg-white text-gray-800 border-gray-300 hover:border-primary'
+                      ? 'bg-brand-forest text-white border-brand-forest shadow-sm'
+                      : 'bg-white text-brand-charcoal border-brand-border hover:border-brand-forest/50'
                   }`}
                 >
                   {formatRupiah(preset)}
@@ -590,7 +591,7 @@ export default function TransferPage() {
           </div>
 
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-600 text-lg" aria-hidden="true">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-brand-muted text-lg" aria-hidden="true">
               Rp
             </span>
             <input
@@ -601,13 +602,13 @@ export default function TransferPage() {
               placeholder="Contoh: 50.000 (Min. 10.000)"
               value={amountInput ? Number(amountInput).toLocaleString('id-ID') : ''}
               onChange={handleAmountChange}
-              className={`w-full rounded-2xl border bg-white text-gray-900 font-bold pl-12 pr-4 transition-default focus:ring-2 focus:ring-primary focus:border-primary border-gray-300 ${
+              className={`w-full rounded-xl border border-brand-border bg-white text-brand-charcoal font-bold tabular-nums pl-12 pr-4 transition-default focus:outline-none focus:ring-2 focus:ring-brand-forest/20 focus:border-brand-forest placeholder:text-brand-muted/50 placeholder:font-normal ${
                 isEasyMode ? 'py-4 text-xl min-h-[64px]' : 'py-3 text-lg min-h-[48px]'
               }`}
               aria-describedby="transfer-hint"
             />
           </div>
-          <p id="transfer-hint" className="text-xs text-gray-600 font-medium mt-1">
+          <p id="transfer-hint" className="text-xs text-brand-muted font-medium mt-1.5">
             Batas per transaksi: Rp 10.000 hingga Rp 10.000.000.
           </p>
 
@@ -630,7 +631,7 @@ export default function TransferPage() {
           <label
             htmlFor="transfer-notes"
             id="heading-notes"
-            className={`block font-bold text-gray-900 mb-1.5 ${isEasyMode ? 'text-lg' : 'text-sm'}`}
+            className={`block font-bold text-brand-charcoal mb-1.5 ${isEasyMode ? 'text-lg' : 'text-sm'}`}
           >
             3. Catatan Transfer (Opsional)
           </label>
@@ -641,8 +642,8 @@ export default function TransferPage() {
             maxLength={60}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className={`w-full rounded-2xl border bg-white text-gray-900 px-4 transition-default focus:ring-2 focus:ring-primary focus:border-primary border-gray-300 ${
-              isEasyMode ? 'py-3.5 text-base min-h-[56px]' : 'py-2.5 text-sm'
+            className={`w-full rounded-xl border border-brand-border bg-white text-brand-charcoal px-4 transition-default focus:outline-none focus:ring-2 focus:ring-brand-forest/20 focus:border-brand-forest placeholder:text-brand-muted/50 ${
+              isEasyMode ? 'py-4 text-base min-h-[64px]' : 'py-2.5 text-sm min-h-[46px]'
             }`}
           />
         </section>
@@ -650,37 +651,37 @@ export default function TransferPage() {
         {/* Pesan Kesalahan Form */}
         {errorMessage && (
           <div
-            className="p-3.5 bg-red-50 border border-red-300 rounded-xl text-red-900 font-medium text-sm flex items-start gap-2"
+            className="sp-alert-error flex items-start gap-2"
             role="alert"
             aria-live="assertive"
           >
-            <AlertCircle size={18} className="shrink-0 text-red-600 mt-0.5" aria-hidden="true" />
+            <AlertCircle size={18} className="shrink-0 text-brand-coral mt-0.5" aria-hidden="true" />
             <p className="flex-1">{errorMessage}</p>
           </div>
         )}
 
         {/* Ringkasan Ringkas */}
-        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex flex-col gap-2.5">
+        <Card className="bg-white border-brand-border flex flex-col gap-2.5">
           <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-600 font-medium">Nominal Transfer:</span>
-            <span className="font-bold text-gray-900 text-base">{formatRupiah(parsedAmount)}</span>
+            <span className="text-brand-muted font-medium">Nominal Transfer</span>
+            <span className="font-bold text-brand-charcoal text-base tabular-nums">{formatRupiah(parsedAmount)}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-600 font-medium">Biaya Admin:</span>
-            <span className="font-semibold text-secondary-dark">Gratis (Rp 0)</span>
+            <span className="text-brand-muted font-medium">Biaya Admin</span>
+            <span className="font-semibold text-brand-emerald">Gratis (Rp 0)</span>
           </div>
-          <div className="border-t border-gray-200 pt-2 flex justify-between items-center">
-            <span className="font-bold text-gray-900">Total Potong Saldo:</span>
-            <span className="font-extrabold text-primary text-xl">{formatRupiah(parsedAmount)}</span>
+          <div className="border-t border-brand-border pt-2.5 flex justify-between items-center">
+            <span className="font-bold text-brand-charcoal">Total Potong Saldo</span>
+            <span className="font-extrabold text-brand-forest text-xl tabular-nums">{formatRupiah(parsedAmount)}</span>
           </div>
-        </div>
+        </Card>
 
         <Button
           type="submit"
           variant="primary"
           size={isEasyMode ? 'lg' : 'md'}
           fullWidth
-          className="mt-1 shadow-md"
+          className="mt-1"
         >
           Tinjau & Lanjutkan
         </Button>
@@ -699,7 +700,7 @@ export default function TransferPage() {
           <div className="flex flex-col gap-3">
             {selectedRecipient.isDemo && (
               <div
-                className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs font-medium flex items-start gap-2"
+                className="sp-alert-warning text-xs flex items-start gap-2"
                 role="alert"
               >
                 <ShieldAlert size={16} className="shrink-0 text-amber-700 mt-0.5" aria-hidden="true" />
@@ -743,15 +744,15 @@ export default function TransferPage() {
         showDefaultFooter={false}
       >
         <div className="flex flex-col gap-4 text-center">
-          <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl mx-auto flex items-center justify-center" aria-hidden="true">
+          <div className="w-12 h-12 bg-brand-forest/10 text-brand-forest rounded-2xl mx-auto flex items-center justify-center" aria-hidden="true">
             <Lock size={24} />
           </div>
 
           <div>
-            <p className="font-bold text-gray-900 text-base">Konfirmasi Otorisasi</p>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="font-bold text-brand-charcoal text-base">Konfirmasi Otorisasi</p>
+            <p className="text-xs text-brand-muted mt-1">
               Masukkan 6 digit PIN akun Anda untuk menyelesaikan transfer sebesar{' '}
-              <strong className="text-gray-900">{formatRupiah(parsedAmount)}</strong>.
+              <strong className="text-brand-charcoal tabular-nums">{formatRupiah(parsedAmount)}</strong>.
             </p>
           </div>
 
@@ -766,8 +767,8 @@ export default function TransferPage() {
           />
 
           {pinError && (
-            <div className="p-3 bg-red-50 border border-red-300 rounded-xl text-red-900 font-medium text-xs text-left flex items-start gap-2" role="alert">
-              <AlertCircle size={16} className="shrink-0 text-red-600 mt-0.5" aria-hidden="true" />
+            <div className="sp-alert-error text-xs text-left flex items-start gap-2" role="alert">
+              <AlertCircle size={16} className="shrink-0 text-brand-coral mt-0.5" aria-hidden="true" />
               <p className="flex-1">{pinError}</p>
             </div>
           )}
@@ -807,53 +808,53 @@ export default function TransferPage() {
       >
         {transferResult && (
           <div className="flex flex-col gap-4 text-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 text-secondary-dark mx-auto flex items-center justify-center" aria-hidden="true">
+            <div className="w-16 h-16 rounded-full bg-brand-emerald/15 text-brand-emerald mx-auto flex items-center justify-center" aria-hidden="true">
               <CheckCircle2 size={36} />
             </div>
 
             <div>
-              <p className="text-xs font-bold text-secondary-dark uppercase tracking-wider">Transfer Berhasil</p>
-              <p className="text-2xl font-extrabold text-gray-900 mt-1">
+              <p className="text-xs font-bold text-brand-emerald uppercase tracking-wider">Transfer Berhasil</p>
+              <p className="text-2xl font-extrabold text-brand-charcoal tabular-nums mt-1">
                 -{formatRupiah(transferResult.amount)}
               </p>
-              <p className="text-xs text-gray-500 font-medium mt-0.5">
+              <p className="text-xs text-brand-muted font-medium mt-0.5">
                 {formatTanggal(transferResult.createdAt)}
               </p>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-left text-xs space-y-2 text-gray-700 font-medium">
+            <div className="bg-brand-cream/60 p-4 rounded-xl border border-brand-border text-left text-xs space-y-2 text-brand-charcoal font-medium">
               <div className="flex justify-between">
-                <span className="text-gray-500">Nomor Transaksi:</span>
-                <span className="font-mono font-bold text-gray-900">{transferResult.id}</span>
+                <span className="text-brand-muted">Nomor Transaksi</span>
+                <span className="font-mono font-bold text-brand-charcoal">{transferResult.id}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Penerima:</span>
-                <span className="font-bold text-gray-900">{transferResult.metadata?.recipientName}</span>
+                <span className="text-brand-muted">Penerima</span>
+                <span className="font-bold text-brand-charcoal">{transferResult.metadata?.recipientName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Nomor Akun:</span>
-                <span className="font-mono text-gray-900">{maskPhoneNumber(transferResult.metadata?.recipientPhone)}</span>
+                <span className="text-brand-muted">Nomor Akun</span>
+                <span className="font-mono text-brand-charcoal">{maskPhoneNumber(transferResult.metadata?.recipientPhone)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Biaya Admin:</span>
-                <span className="font-semibold text-secondary-dark">Rp 0</span>
+                <span className="text-brand-muted">Biaya Admin</span>
+                <span className="font-semibold text-brand-emerald">Rp 0</span>
               </div>
               {transferResult.metadata?.notes && transferResult.metadata.notes !== '-' && (
-                <div className="flex justify-between border-t border-gray-200 pt-1.5">
-                  <span className="text-gray-500">Catatan:</span>
-                  <span className="text-gray-800 italic">{transferResult.metadata.notes}</span>
+                <div className="flex justify-between border-t border-brand-border pt-1.5">
+                  <span className="text-brand-muted">Catatan</span>
+                  <span className="text-brand-charcoal italic">{transferResult.metadata.notes}</span>
                 </div>
               )}
-              <div className="flex justify-between border-t border-gray-200 pt-2 text-sm">
-                <span className="font-semibold text-gray-800">Sisa Saldo Anda:</span>
-                <span className="font-extrabold text-secondary-dark">{formatRupiah(balance)}</span>
+              <div className="flex justify-between border-t border-brand-border pt-2 text-sm">
+                <span className="font-semibold text-brand-charcoal">Sisa Saldo Anda</span>
+                <span className="font-extrabold text-brand-forest tabular-nums">{formatRupiah(balance)}</span>
               </div>
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-2.5 text-[11px] text-yellow-800 font-medium text-left">
+            <div className="sp-alert-info text-[11px] text-left">
               {transferResult.metadata?.isDemo || transferResult.metadata?.simulation
-                ? 'ℹ Simulasi Eksternal: Saldo lokal Anda telah dipotong untuk keperluan demonstrasi, tetapi uang tidak dikirim ke nomor tujuan atau rekening eksternal.'
-                : 'ℹ Ini adalah bukti transaksi simulasi prototype SahabatPay. Tidak ada aliran dana riil antar-rekening perbankan.'}
+                ? 'Simulasi Eksternal: Saldo lokal Anda telah dipotong untuk keperluan demonstrasi, tetapi uang tidak dikirim ke nomor tujuan atau rekening eksternal.'
+                : 'Ini adalah bukti transaksi simulasi prototype SahabatPay. Tidak ada aliran dana riil antar-rekening perbankan.'}
             </div>
 
             <Button

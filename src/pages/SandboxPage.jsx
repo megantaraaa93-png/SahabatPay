@@ -182,8 +182,8 @@ export default function SandboxPage() {
             stopSpeech();
             navigate('/dashboard');
           }}
-          className={`inline-flex items-center gap-2 font-semibold text-gray-700 hover:text-primary transition-default rounded-xl border border-gray-300 bg-white p-2 focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
-            isEasyMode ? 'min-h-[52px] px-4 text-base' : 'text-sm px-3'
+          className={`inline-flex items-center gap-2 font-semibold text-brand-charcoal hover:text-brand-forest transition-default rounded-xl border border-brand-border bg-white shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+            isEasyMode ? 'min-h-[64px] px-5 text-base' : 'min-h-[42px] text-sm px-3.5'
           }`}
           aria-label="Kembali ke Beranda"
         >
@@ -191,15 +191,15 @@ export default function SandboxPage() {
           <span>Beranda</span>
         </button>
 
-        <span className="text-xs font-extrabold text-amber-900 bg-amber-100 border border-amber-300 py-1 px-3 rounded-full uppercase tracking-wider">
+        <span className="sp-badge-amber py-1 px-3 font-extrabold uppercase tracking-wider">
           SANDBOX / SIMULASI
         </span>
 
         <button
           type="button"
           onClick={handleResetSandbox}
-          className={`inline-flex items-center gap-1.5 font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-xl p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-            isEasyMode ? 'min-h-[52px] px-3 text-sm' : 'text-xs px-2.5'
+          className={`inline-flex items-center gap-1.5 font-semibold text-brand-forest bg-brand-forest/8 hover:bg-brand-forest/15 border border-brand-forest/20 rounded-xl transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+            isEasyMode ? 'min-h-[64px] px-4 text-sm' : 'min-h-[42px] text-xs px-3'
           }`}
           aria-label="Ulangi dan reset saldo latihan sandbox"
         >
@@ -209,7 +209,7 @@ export default function SandboxPage() {
       </div>
 
       {/* Banner Isolasi Sandbox */}
-      <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-2xl text-amber-900 text-xs font-medium flex items-start gap-2.5" role="note">
+      <div className="sp-alert-warning rounded-2xl text-xs flex items-start gap-2.5" role="note">
         <ShieldAlert size={18} className="shrink-0 text-amber-700 mt-0.5" aria-hidden="true" />
         <p>
           <strong>Mode Latihan Terpisah:</strong> Saldo dan riwayat di halaman ini 100% terpisah dari dompet utama Anda dan tidak terhubung ke layanan pembayaran apa pun. PIN Latihan: <strong className="font-mono">123456</strong>.
@@ -217,21 +217,21 @@ export default function SandboxPage() {
       </div>
 
       {/* Kartu Saldo Sandbox */}
-      <Card className="!p-5 bg-gradient-to-r from-amber-600 to-amber-500 text-white !border-0 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center" aria-hidden="true">
+      <div className="balance-card rounded-2xl p-5 text-white shadow-balance">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center" aria-hidden="true">
             <GraduationCap size={26} />
           </div>
           <div>
-            <p className="text-xs text-white/90 font-semibold uppercase tracking-wider">
+            <p className="text-xs text-white/75 font-semibold uppercase tracking-wider">
               Saldo Latihan (SANDBOX)
             </p>
-            <p className="text-2xl font-extrabold tracking-tight" aria-live="polite">
+            <p className="text-2xl font-extrabold tracking-tight tabular-nums mt-0.5" aria-live="polite">
               {formatRupiah(sandboxState.balance)}
             </p>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Pilihan Latihan */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="tablist" aria-label="Pilih jenis latihan sandbox">
@@ -252,12 +252,12 @@ export default function SandboxPage() {
                 setActivePractice(id);
                 setStatusMsg(null);
               }}
-              className={`rounded-2xl border font-bold flex items-center justify-center gap-1.5 transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
+              className={`rounded-2xl border font-bold flex items-center justify-center gap-1.5 transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
                 isEasyMode ? 'min-h-[64px] text-base px-3' : 'min-h-[46px] text-xs px-2.5'
               } ${
                 active
-                  ? 'bg-primary text-white border-primary shadow-sm'
-                  : 'bg-white text-gray-800 border-gray-300 hover:border-primary'
+                  ? 'bg-brand-forest text-white border-brand-forest shadow-sm'
+                  : 'bg-white text-brand-charcoal border-brand-border hover:border-brand-forest/50'
               }`}
             >
               <Icon size={16} aria-hidden="true" />
@@ -268,20 +268,20 @@ export default function SandboxPage() {
       </div>
 
       {/* Form Latihan */}
-      <Card className="!p-5 bg-white border-gray-200">
+      <Card className="!p-5 bg-white border-brand-border shadow-card">
         <form onSubmit={handleStartPractice} className="flex flex-col gap-4">
           {activePractice === 'pin' ? (
             <div className="text-center py-2">
-              <p className="font-bold text-gray-900 text-base">Latihan Input PIN 6 Digit</p>
-              <p className="text-xs text-gray-600 mt-1">
-                Berlatih menggunakan input PIN aksesibel (tombol layar, panah, atau volume) dengan kode latihan <strong className="font-mono">123456</strong>.
+              <p className="font-bold text-brand-charcoal text-base">Latihan Input PIN 6 Digit</p>
+              <p className="text-xs text-brand-muted mt-1">
+                Berlatih menggunakan input PIN aksesibel (tombol layar, panah, atau volume) dengan kode latihan <strong className="font-mono text-brand-charcoal">123456</strong>.
               </p>
             </div>
           ) : (
             <>
               {activePractice !== 'top_up' && (
                 <div>
-                  <label htmlFor="sandbox-target" className="block font-bold text-gray-800 text-sm mb-1">
+                  <label htmlFor="sandbox-target" className="block font-bold text-brand-charcoal text-sm mb-1.5">
                     {activePractice === 'qris' ? 'Nama Merchant Latihan' : 'Nama Penerima Latihan'}
                   </label>
                   <input
@@ -289,29 +289,29 @@ export default function SandboxPage() {
                     type="text"
                     value={targetName}
                     onChange={(e) => setTargetName(e.target.value)}
-                    className={`w-full rounded-xl border border-gray-300 px-3 ${
-                      isEasyMode ? 'py-3.5 text-base min-h-[56px]' : 'py-2.5 text-sm'
+                    className={`w-full rounded-xl border border-brand-border bg-white text-brand-charcoal px-3.5 focus:outline-none focus:ring-2 focus:ring-brand-forest/20 focus:border-brand-forest ${
+                      isEasyMode ? 'py-3.5 text-base min-h-[64px]' : 'py-2.5 text-sm min-h-[46px]'
                     }`}
                   />
                 </div>
               )}
 
               <div>
-                <label htmlFor="sandbox-amount" className="block font-bold text-gray-800 text-sm mb-1">
+                <label htmlFor="sandbox-amount" className="block font-bold text-brand-charcoal text-sm mb-1.5">
                   Nominal Latihan (Rp)
                 </label>
-                <div className="grid grid-cols-4 gap-2 mb-2">
+                <div className="grid grid-cols-4 gap-2 mb-2.5">
                   {[10000, 20000, 50000, 100000].map((val) => (
                     <button
                       key={val}
                       type="button"
                       onClick={() => setAmountInput(String(val))}
-                      className={`rounded-xl border font-bold text-xs ${
-                        isEasyMode ? 'min-h-[52px]' : 'min-h-[40px]'
+                      className={`rounded-xl border font-bold text-xs tabular-nums transition-default ${
+                        isEasyMode ? 'min-h-[56px] text-sm' : 'min-h-[40px]'
                       } ${
                         parsedAmount === val
-                          ? 'bg-amber-500 text-white border-amber-500'
-                          : 'bg-gray-50 text-gray-800 border-gray-300'
+                          ? 'bg-brand-forest text-white border-brand-forest shadow-sm'
+                          : 'bg-brand-cream/50 text-brand-charcoal border-brand-border hover:border-brand-forest/40'
                       }`}
                     >
                       {formatRupiah(val)}
@@ -324,8 +324,8 @@ export default function SandboxPage() {
                   inputMode="numeric"
                   value={amountInput ? Number(amountInput.replace(/\D/g, '')).toLocaleString('id-ID') : ''}
                   onChange={(e) => setAmountInput(e.target.value.replace(/\D/g, ''))}
-                  className={`w-full rounded-xl border border-gray-300 px-3 font-bold ${
-                    isEasyMode ? 'py-3.5 text-lg min-h-[56px]' : 'py-2.5 text-base'
+                  className={`w-full rounded-xl border border-brand-border bg-white text-brand-charcoal px-3.5 font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-forest/20 focus:border-brand-forest ${
+                    isEasyMode ? 'py-3.5 text-lg min-h-[64px]' : 'py-2.5 text-base min-h-[48px]'
                   }`}
                 />
               </div>
@@ -340,16 +340,16 @@ export default function SandboxPage() {
             <div
               role="status"
               aria-live="polite"
-              className={`p-3 rounded-xl border text-xs font-medium flex items-start gap-2 ${
+              className={`text-xs flex items-start gap-2 ${
                 statusMsg.type === 'success'
-                  ? 'bg-green-50 border-green-300 text-green-900'
-                  : 'bg-red-50 border-red-300 text-red-900'
+                  ? 'sp-alert-success'
+                  : 'sp-alert-error'
               }`}
             >
               {statusMsg.type === 'success' ? (
-                <CheckCircle2 size={16} className="shrink-0 text-secondary-dark mt-0.5" aria-hidden="true" />
+                <CheckCircle2 size={16} className="shrink-0 text-brand-emerald mt-0.5" aria-hidden="true" />
               ) : (
-                <AlertCircle size={16} className="shrink-0 text-red-600 mt-0.5" aria-hidden="true" />
+                <AlertCircle size={16} className="shrink-0 text-brand-coral mt-0.5" aria-hidden="true" />
               )}
               <p>{statusMsg.text}</p>
             </div>
@@ -363,11 +363,11 @@ export default function SandboxPage() {
 
       {/* Riwayat Sandbox Terisolasi */}
       <section aria-labelledby="heading-sandbox-history">
-        <h2 id="heading-sandbox-history" className="font-bold text-gray-800 text-sm mb-2">
+        <h2 id="heading-sandbox-history" className="font-bold text-brand-charcoal text-sm mb-2">
           Riwayat Latihan Sandbox ({sandboxState.transactions.length})
         </h2>
         {sandboxState.transactions.length === 0 ? (
-          <p className="text-xs text-gray-500 bg-white border border-gray-200 rounded-xl p-4 text-center">
+          <p className="text-xs text-brand-muted bg-white border border-brand-border rounded-xl p-4 text-center shadow-card">
             Belum ada transaksi latihan. Coba lakukan simulasi di atas.
           </p>
         ) : (
@@ -375,13 +375,13 @@ export default function SandboxPage() {
             {sandboxState.transactions.slice(0, 5).map((tx) => (
               <div
                 key={tx.id}
-                className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between text-xs"
+                className="bg-white border border-brand-border rounded-xl p-3 flex items-center justify-between text-xs shadow-card"
               >
                 <div>
-                  <p className="font-bold text-gray-900">{tx.title}</p>
-                  <p className="text-gray-500">{formatTanggalSingkat(tx.createdAt)}</p>
+                  <p className="font-bold text-brand-charcoal">{tx.title}</p>
+                  <p className="text-brand-muted">{formatTanggalSingkat(tx.createdAt)}</p>
                 </div>
-                <span className={`font-extrabold ${tx.type === 'top_up' ? 'text-secondary-dark' : 'text-amber-700'}`}>
+                <span className={`font-extrabold tabular-nums ${tx.type === 'top_up' ? 'text-brand-emerald' : 'text-brand-coral'}`}>
                   {tx.type === 'top_up' ? '+' : '-'} {formatRupiah(tx.amount)}
                 </span>
               </div>
@@ -398,12 +398,12 @@ export default function SandboxPage() {
         showDefaultFooter={false}
       >
         <div className="flex flex-col gap-4 text-center">
-          <p className="text-xs text-gray-600">
-            Masukkan 6 digit PIN latihan (<strong className="font-mono">123456</strong>). Data ini tidak dikirim ke mana pun.
+          <p className="text-xs text-brand-muted">
+            Masukkan 6 digit PIN latihan (<strong className="font-mono text-brand-charcoal">123456</strong>). Data ini tidak dikirim ke mana pun.
           </p>
           <AccessiblePinInput pinLength={6} onComplete={handlePinComplete} />
           {pinError && (
-            <p className="text-xs text-red-700 font-semibold" role="alert">
+            <p className="text-xs text-brand-coral font-semibold" role="alert">
               {pinError}
             </p>
           )}

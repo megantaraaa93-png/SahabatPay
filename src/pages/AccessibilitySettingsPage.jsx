@@ -81,8 +81,8 @@ export default function AccessibilitySettingsPage() {
             stopSpeech();
             navigate('/profile');
           }}
-          className={`inline-flex items-center gap-2 font-semibold text-gray-700 hover:text-primary transition-default rounded-xl border border-gray-300 bg-white p-2 focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
-            isEasyMode ? 'min-h-[52px] px-4 text-base' : 'text-sm px-3'
+          className={`inline-flex items-center gap-2 font-semibold text-brand-charcoal hover:text-brand-forest transition-default rounded-xl border border-brand-border bg-white shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+            isEasyMode ? 'min-h-[64px] px-5 text-base' : 'min-h-[42px] text-sm px-3.5'
           }`}
           aria-label="Kembali ke Halaman Profil"
         >
@@ -90,7 +90,7 @@ export default function AccessibilitySettingsPage() {
           <span>Profil</span>
         </button>
 
-        <h1 className={`font-bold text-gray-900 ${isEasyMode ? 'text-2xl' : 'text-xl'}`}>
+        <h1 className={`font-extrabold text-brand-charcoal ${isEasyMode ? 'text-2xl' : 'text-xl'}`}>
           Preferensi Aksesibilitas
         </h1>
 
@@ -98,14 +98,14 @@ export default function AccessibilitySettingsPage() {
       </div>
 
       {/* Banner Penjelasan Inklusivitas */}
-      <Card className="!p-4 bg-gradient-to-r from-red-50 to-orange-50 border-red-200">
+      <Card className="!p-4 bg-brand-forest/5 border-brand-forest/20">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shrink-0" aria-hidden="true">
+          <div className="w-10 h-10 rounded-xl bg-brand-forest text-white flex items-center justify-center shrink-0" aria-hidden="true">
             <Accessibility size={22} />
           </div>
           <div>
-            <p className="font-extrabold text-gray-900 text-sm">Satu Dompet, Untuk Semua Pengguna</p>
-            <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">
+            <p className="font-extrabold text-brand-charcoal text-sm">Satu Dompet, Untuk Semua Pengguna</p>
+            <p className="text-xs text-brand-muted mt-0.5 leading-relaxed">
               SahabatPay dirancang inklusif. Anda dapat beralih mode kapan saja tanpa mengulang transaksi atau mengubah data saldo Anda.
             </p>
           </div>
@@ -116,7 +116,7 @@ export default function AccessibilitySettingsPage() {
       {/* PILIHAN 3 MODE AKSESIBILITAS */}
       {/* ============================================================ */}
       <section aria-labelledby="heading-mode-selection" className="flex flex-col gap-3">
-        <h2 id="heading-mode-selection" className={`font-bold text-gray-900 ${isEasyMode ? 'text-xl' : 'text-base'}`}>
+        <h2 id="heading-mode-selection" className={`font-bold text-brand-charcoal ${isEasyMode ? 'text-xl' : 'text-base'}`}>
           Pilih Mode yang Anda Butuhkan:
         </h2>
 
@@ -127,8 +127,8 @@ export default function AccessibilitySettingsPage() {
             currentMode={mode}
             title="Normal Mode (Tampilan Standar)"
             badgeText="Standar"
-            badgeColor="bg-blue-100 text-blue-800 border-blue-200"
-            icon={<Eye size={22} className="text-blue-600" />}
+            badgeColor="sp-badge-forest"
+            icon={<Eye size={22} className="text-brand-forest" />}
             description="Tampilan antarmuka modern yang seimbang, intuitif, dan responsif untuk penggunaan harian umum."
             features={[
               'Tata letak informasi seimbang dan ringkas',
@@ -145,8 +145,8 @@ export default function AccessibilitySettingsPage() {
             currentMode={mode}
             title="Audio Guidance Mode (Panduan Suara)"
             badgeText="Tunanetra & Low Vision"
-            badgeColor="bg-purple-100 text-purple-800 border-purple-200"
-            icon={<Volume2 size={22} className="text-purple-600" />}
+            badgeColor="sp-badge-green"
+            icon={<Volume2 size={22} className="text-brand-emerald" />}
             description="Dirancang khusus untuk pengguna tunanetra atau low vision. Menyediakan instruksi suara interaktif pada setiap alur transaksi."
             features={[
               'Bilah panduan suara yang dapat diputar dan dihentikan setiap saat',
@@ -163,8 +163,8 @@ export default function AccessibilitySettingsPage() {
             currentMode={mode}
             title="Easy Mode (Aksesibilitas Motorik)"
             badgeText="Keterbatasan Motorik & Lansia"
-            badgeColor="bg-amber-100 text-amber-800 border-amber-200"
-            icon={<Smartphone size={22} className="text-amber-600" />}
+            badgeColor="sp-badge-amber"
+            icon={<Smartphone size={22} className="text-amber-700" />}
             description="Dirancang untuk pengguna dengan tremor, keterbatasan gerak motorik, atau lansia. Memperbesar ukuran tombol dan tipografi."
             features={[
               'Ukuran target sentuh tombol minimal 64 piksel (mudah disentuh)',
@@ -181,19 +181,19 @@ export default function AccessibilitySettingsPage() {
       {/* FITUR PERLINDUNGAN KHUSUS (SHIELDS) */}
       {/* ============================================================ */}
       <section aria-labelledby="heading-shields" className="flex flex-col gap-3">
-        <h2 id="heading-shields" className={`font-bold text-gray-900 ${isEasyMode ? 'text-xl' : 'text-base'}`}>
+        <h2 id="heading-shields" className={`font-bold text-brand-charcoal ${isEasyMode ? 'text-xl' : 'text-base'}`}>
           Perlindungan Khusus Transaksi (Shields)
         </h2>
 
         <div className="flex flex-col gap-3">
           {/* Tremor Shield Switch */}
-          <Card className="!p-4 bg-white border-gray-200 shadow-sm flex flex-col gap-2">
+          <Card className="!p-4 bg-white border-brand-border shadow-card flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className={`font-extrabold text-gray-900 ${isEasyMode ? 'text-lg' : 'text-sm'}`}>
+                <p className={`font-extrabold text-brand-charcoal ${isEasyMode ? 'text-lg' : 'text-sm'}`}>
                   Tremor Shield
                 </p>
-                <p className={`text-gray-600 mt-0.5 leading-relaxed ${isEasyMode ? 'text-base' : 'text-xs'}`}>
+                <p className={`text-brand-muted mt-0.5 leading-relaxed ${isEasyMode ? 'text-base' : 'text-xs'}`}>
                   Mewajibkan penekanan stabil selama {tremorDurationMs >= 2000 ? '2' : tremorDurationMs >= 1500 ? '1,5' : '1'} detik pada konfirmasi transaksi untuk mencegah ketidaksengajaan akibat tremor atau salah sentuh.
                 </p>
               </div>
@@ -210,8 +210,8 @@ export default function AccessibilitySettingsPage() {
                     speakText(next ? 'Tremor Shield diaktifkan.' : 'Tremor Shield dinonaktifkan.');
                   }
                 }}
-                className={`w-14 h-8 rounded-full transition-colors relative p-1 shrink-0 focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
-                  tremorShieldEnabled ? 'bg-secondary' : 'bg-gray-300'
+                className={`w-14 h-8 rounded-full transition-colors relative p-1 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+                  tremorShieldEnabled ? 'bg-brand-emerald' : 'bg-gray-300'
                 }`}
                 aria-label="Aktifkan atau nonaktifkan Tremor Shield"
               >
@@ -222,14 +222,14 @@ export default function AccessibilitySettingsPage() {
                 />
               </button>
             </div>
-            <span className="text-[11px] font-semibold text-secondary-dark">
+            <span className="text-[11px] font-semibold text-brand-emerald">
               Status: {tremorShieldEnabled ? 'Aktif (Direkomendasikan)' : 'Nonaktif'}
             </span>
 
             {/* Selector Durasi Tremor Shield — tampil hanya jika aktif */}
             {tremorShieldEnabled && (
-              <div className="mt-1 pt-3 border-t border-gray-100">
-                <p className={`font-semibold text-gray-700 mb-2 ${isEasyMode ? 'text-base' : 'text-xs'}`}>
+              <div className="mt-1 pt-3 border-t border-brand-border">
+                <p className={`font-semibold text-brand-charcoal mb-2 ${isEasyMode ? 'text-base' : 'text-xs'}`}>
                   Durasi Penahanan:
                 </p>
                 <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Pilih durasi Tremor Shield">
@@ -248,15 +248,14 @@ export default function AccessibilitySettingsPage() {
                             speakText(`Durasi Tremor Shield diubah menjadi ${opt.label}.`);
                           }
                         }}
-                        className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
-                          isEasyMode ? 'min-h-[48px] text-sm px-4' : ''
+                        className={`px-3.5 py-2 rounded-xl border text-xs font-bold transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+                          isEasyMode ? 'min-h-[52px] text-sm px-4' : ''
                         } ${
                           isSelected
-                            ? 'bg-secondary text-white border-secondary shadow-sm'
-                            : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                            ? 'bg-brand-emerald text-white border-brand-emerald shadow-sm'
+                            : 'bg-white text-brand-charcoal border-brand-border hover:border-brand-forest/40'
                         }`}
                       >
-                        {isSelected && '✓ '}
                         {opt.label}
                       </button>
                     );
@@ -267,13 +266,13 @@ export default function AccessibilitySettingsPage() {
           </Card>
 
           {/* Cognitive Delay Shield Switch */}
-          <Card className="!p-4 bg-white border-gray-200 shadow-sm flex flex-col gap-2">
+          <Card className="!p-4 bg-white border-brand-border shadow-card flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className={`font-extrabold text-gray-900 ${isEasyMode ? 'text-lg' : 'text-sm'}`}>
+                <p className={`font-extrabold text-brand-charcoal ${isEasyMode ? 'text-lg' : 'text-sm'}`}>
                   Cognitive Delay Shield (Jeda 10 Detik)
                 </p>
-                <p className={`text-gray-600 mt-0.5 leading-relaxed ${isEasyMode ? 'text-base' : 'text-xs'}`}>
+                <p className={`text-brand-muted mt-0.5 leading-relaxed ${isEasyMode ? 'text-base' : 'text-xs'}`}>
                   Memberikan waktu telaah 10 detik sebelum tombol konfirmasi aktif agar Anda dapat memeriksa kembali nominal dan penerima dengan tenang.
                 </p>
               </div>
@@ -290,8 +289,8 @@ export default function AccessibilitySettingsPage() {
                     speakText(next ? 'Cognitive Delay Shield diaktifkan.' : 'Cognitive Delay Shield dinonaktifkan.');
                   }
                 }}
-                className={`w-14 h-8 rounded-full transition-colors relative p-1 shrink-0 focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
-                  cognitiveDelayEnabled ? 'bg-secondary' : 'bg-gray-300'
+                className={`w-14 h-8 rounded-full transition-colors relative p-1 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+                  cognitiveDelayEnabled ? 'bg-brand-emerald' : 'bg-gray-300'
                 }`}
                 aria-label="Aktifkan atau nonaktifkan Cognitive Delay Shield"
               >
@@ -302,7 +301,7 @@ export default function AccessibilitySettingsPage() {
                 />
               </button>
             </div>
-            <span className="text-[11px] font-semibold text-secondary-dark">
+            <span className="text-[11px] font-semibold text-brand-emerald">
               Status: {cognitiveDelayEnabled ? 'Aktif (Direkomendasikan)' : 'Nonaktif'}
             </span>
           </Card>
@@ -313,12 +312,12 @@ export default function AccessibilitySettingsPage() {
       {/* KONTROL PENGUJIAN AUDIO GUIDANCE */}
       {/* ============================================================ */}
       <section aria-labelledby="heading-audio-test">
-        <h2 id="heading-audio-test" className={`font-bold text-gray-900 mb-2 ${isEasyMode ? 'text-xl' : 'text-base'}`}>
+        <h2 id="heading-audio-test" className={`font-bold text-brand-charcoal mb-2 ${isEasyMode ? 'text-xl' : 'text-base'}`}>
           Uji Coba Suara Panduan
         </h2>
 
-        <Card className="!p-4 bg-white border-gray-200 shadow-sm flex flex-col gap-3">
-          <p className="text-xs text-gray-600 leading-relaxed">
+        <Card className="!p-4 bg-white border-brand-border shadow-card flex flex-col gap-3">
+          <p className="text-xs text-brand-muted leading-relaxed">
             Tekan tombol di bawah untuk mendengarkan simulasi pembacaan suara sintetis Bahasa Indonesia SahabatPay:
           </p>
 
@@ -329,7 +328,6 @@ export default function AccessibilitySettingsPage() {
               size={isEasyMode ? 'lg' : 'md'}
               icon={<Play size={16} />}
               onClick={handleTestAudio}
-              className="border-purple-300 text-purple-700 hover:bg-purple-50"
             >
               Putar Contoh Panduan Suara
             </Button>
@@ -341,7 +339,7 @@ export default function AccessibilitySettingsPage() {
                 size={isEasyMode ? 'lg' : 'md'}
                 icon={<Square size={16} />}
                 onClick={handleStopAudio}
-                className="text-gray-600"
+                className="text-brand-muted"
               >
                 Hentikan Suara
               </Button>
@@ -376,29 +374,29 @@ function ModeCard({
       role="radio"
       aria-checked={isSelected}
       onClick={onSelect}
-      className={`w-full text-left rounded-2xl border p-4 sm:p-5 transition-default focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
+      className={`w-full text-left rounded-2xl border p-4 sm:p-5 transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
         isEasy ? 'min-h-[64px] p-5' : ''
       } ${
         isSelected
-          ? 'bg-red-50/60 border-primary ring-2 ring-primary/20 shadow-sm'
-          : 'bg-white border-gray-200 hover:border-gray-300'
+          ? 'bg-brand-forest/5 border-brand-forest ring-2 ring-brand-forest/15 shadow-card-md'
+          : 'bg-white border-brand-border hover:border-brand-muted/40'
       }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-200 shrink-0" aria-hidden="true">
+          <div className="p-2.5 rounded-xl bg-brand-cream border border-brand-border shrink-0" aria-hidden="true">
             {icon}
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className={`font-extrabold text-gray-900 ${isEasy ? 'text-lg' : 'text-base'}`}>
+              <h3 className={`font-extrabold text-brand-charcoal ${isEasy ? 'text-lg' : 'text-base'}`}>
                 {title}
               </h3>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeColor}`}>
+              <span className={`text-[10px] font-bold ${badgeColor}`}>
                 {badgeText}
               </span>
             </div>
-            <p className={`text-gray-600 mt-1 leading-relaxed ${isEasy ? 'text-base' : 'text-xs'}`}>
+            <p className={`text-brand-muted mt-1 leading-relaxed ${isEasy ? 'text-base' : 'text-xs'}`}>
               {description}
             </p>
           </div>
@@ -407,21 +405,21 @@ function ModeCard({
         {/* Radio Indicator Visual + Teks */}
         <div className="shrink-0 flex items-center gap-1.5 pt-1">
           {isSelected ? (
-            <span className="inline-flex items-center gap-1 text-xs font-extrabold text-primary bg-white px-2.5 py-1 rounded-full border border-primary shadow-xs">
+            <span className="sp-badge-forest font-extrabold border border-brand-forest/30">
               <CheckCircle2 size={14} />
               <span>Aktif</span>
             </span>
           ) : (
-            <span className="inline-block w-5 h-5 rounded-full border-2 border-gray-300" />
+            <span className="inline-block w-5 h-5 rounded-full border-2 border-brand-border" />
           )}
         </div>
       </div>
 
       {/* Rincian Manfaat Mode */}
-      <ul className="mt-3.5 pt-3 border-t border-gray-200/80 flex flex-col gap-1.5 text-xs text-gray-600">
+      <ul className="mt-3.5 pt-3 border-t border-brand-border flex flex-col gap-1.5 text-xs text-brand-muted">
         {features.map((feat, idx) => (
           <li key={idx} className="flex items-start gap-2">
-            <span className="text-secondary-dark font-bold">✓</span>
+            <CheckCircle2 size={14} className="text-brand-emerald shrink-0 mt-0.5" aria-hidden="true" />
             <span className={isEasy ? 'text-sm' : 'text-xs'}>{feat}</span>
           </li>
         ))}

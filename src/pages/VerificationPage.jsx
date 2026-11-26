@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, ArrowLeft, RotateCw, CheckCircle, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, RotateCw, CheckCircle, AlertTriangle, Zap } from 'lucide-react';
 import { useA11y } from '../context/A11yContext';
 import { useAuth } from '../context/AuthContext';
 import { useAudioGuidance } from '../hooks/useAudioGuidance';
@@ -138,8 +138,8 @@ export default function VerificationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-center items-center px-4 py-8">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-brand-cream flex flex-col justify-center items-center px-4 py-8">
+      <div className="w-full max-w-md animate-fade-in">
         {/* Tombol kembali & Stepper */}
         <div className="flex items-center justify-between mb-4">
           <button
@@ -147,14 +147,16 @@ export default function VerificationPage() {
               stopSpeech();
               navigate('/register');
             }}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-primary transition-default p-1 rounded-lg focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary"
+            className={`inline-flex items-center gap-1.5 font-semibold text-brand-charcoal hover:text-brand-forest transition-default px-2.5 py-1.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+              isEasyMode ? 'min-h-[64px] text-base' : 'text-sm'
+            }`}
             aria-label="Kembali ke formulir pendaftaran sebelumnya"
           >
             <ArrowLeft size={18} aria-hidden="true" />
             <span>Kembali</span>
           </button>
 
-          <div className="flex items-center gap-1.5 text-xs font-bold text-primary-dark bg-red-100 px-3 py-1 rounded-full border border-red-200">
+          <div className="sp-badge-forest py-1 px-3">
             <span>Langkah 2 dari 3</span>
           </div>
         </div>
@@ -169,27 +171,28 @@ export default function VerificationPage() {
           />
         </div>
 
-        <Card className="!p-6 md:!p-8 shadow-md">
+        <Card className="!p-6 md:!p-8 shadow-card-md">
           <div className="text-center mb-6">
-            <Logo size="lg" className="mx-auto mb-3 drop-shadow-md" />
-            <h1 className={`font-bold text-gray-800 ${isEasyMode ? 'text-2xl' : 'text-xl'}`}>
+            <Logo size="lg" className="mx-auto mb-3" />
+            <h1 className={`font-extrabold text-brand-charcoal ${isEasyMode ? 'text-2xl' : 'text-xl'}`}>
               Verifikasi Nomor Handphone
             </h1>
-            <p className={`text-gray-600 mt-2 font-medium ${isEasyMode ? 'text-base' : 'text-sm'}`}>
+            <p className={`text-brand-muted mt-2 font-medium ${isEasyMode ? 'text-base' : 'text-sm'}`}>
               Masukkan 6 digit kode OTP yang kami kirimkan ke:
             </p>
-            <p className="font-bold text-gray-900 mt-1">{targetPhone}</p>
+            <p className="font-bold text-brand-charcoal mt-1 font-mono">{targetPhone}</p>
 
             {/* Hint Kode Demo */}
-            <div className="mt-3 inline-block bg-green-50 border border-green-300 text-secondary-dark font-medium text-xs px-3.5 py-1.5 rounded-lg">
-              Kode OTP Demo: <strong className="font-mono text-sm tracking-wider font-bold">123456</strong>
+            <div className="mt-3 inline-flex items-center gap-1.5 bg-brand-emerald/10 border border-brand-emerald/25 text-brand-emerald font-semibold text-xs px-3.5 py-1.5 rounded-xl">
+              <span>Kode OTP Demo:</span>
+              <strong className="font-mono text-sm tracking-wider font-bold">123456</strong>
             </div>
 
             {/* Stepper Visual */}
             <div className="flex items-center justify-center gap-2 mt-4" aria-hidden="true">
-              <span className="w-8 h-2 rounded-full bg-secondary" />
-              <span className="w-8 h-2 rounded-full bg-primary" />
-              <span className="w-8 h-2 rounded-full bg-gray-300" />
+              <span className="w-8 h-2 rounded-full bg-brand-emerald" />
+              <span className="w-8 h-2 rounded-full bg-brand-forest" />
+              <span className="w-8 h-2 rounded-full bg-brand-border" />
             </div>
           </div>
 
@@ -219,7 +222,7 @@ export default function VerificationPage() {
                     onKeyDown={(e) => handleKeyDown(idx, e.target)}
                     onPaste={idx === 0 ? handlePaste : undefined}
                     aria-label={`Digit ke ${idx + 1}`}
-                    className={`text-center font-bold font-mono rounded-xl border bg-white text-gray-900 transition-default focus:ring-2 focus:ring-primary focus:border-primary border-gray-300 ${
+                    className={`text-center font-bold font-mono rounded-xl border border-brand-border bg-white text-brand-charcoal transition-default focus:outline-none focus:ring-2 focus:ring-brand-forest/20 focus:border-brand-forest ${
                       isEasyMode
                         ? 'w-12 h-16 text-2xl min-h-[64px]'
                         : 'w-11 h-14 text-xl sm:w-12 sm:h-14'
@@ -234,29 +237,30 @@ export default function VerificationPage() {
                 <button
                   type="button"
                   onClick={handleAutoFillDemo}
-                  className="text-xs font-semibold text-secondary-dark hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-secondary p-1.5 rounded"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-emerald hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-emerald p-1.5 rounded-lg"
                 >
-                  ⚡ Klik di sini untuk isi kode demo otomatis
+                  <Zap size={13} aria-hidden="true" />
+                  <span>Klik di sini untuk isi kode demo otomatis</span>
                 </button>
               </div>
 
               {/* Status Feedback Message */}
               {statusMessage && (
                 <div
-                  className={`p-3 rounded-xl border flex items-start gap-2 text-sm font-medium ${
+                  className={`flex items-start gap-2 ${
                     statusMessage.type === 'success'
-                      ? 'bg-green-50 border-green-300 text-green-900'
+                      ? 'sp-alert-success'
                       : statusMessage.type === 'error'
-                      ? 'bg-red-50 border-red-300 text-red-900'
-                      : 'bg-blue-50 border-blue-300 text-blue-900'
+                      ? 'sp-alert-error'
+                      : 'sp-alert-info'
                   }`}
                   role="status"
                   aria-live="polite"
                 >
                   {statusMessage.type === 'success' ? (
-                    <CheckCircle size={18} className="shrink-0 text-secondary" aria-hidden="true" />
+                    <CheckCircle size={18} className="shrink-0 text-brand-emerald mt-0.5" aria-hidden="true" />
                   ) : (
-                    <AlertTriangle size={18} className="shrink-0 text-red-600" aria-hidden="true" />
+                    <AlertTriangle size={18} className="shrink-0 text-brand-coral mt-0.5" aria-hidden="true" />
                   )}
                   <p className="flex-1">{statusMessage.text}</p>
                 </div>
@@ -276,23 +280,23 @@ export default function VerificationPage() {
           </form>
 
           {/* Kirim Ulang OTP */}
-          <div className="mt-6 pt-5 border-t border-gray-200 text-center">
-            <p className={`text-gray-700 font-medium ${isEasyMode ? 'text-base' : 'text-sm'}`}>
+          <div className="mt-6 pt-5 border-t border-brand-border text-center">
+            <p className={`text-brand-muted font-medium ${isEasyMode ? 'text-base' : 'text-sm'}`}>
               Belum menerima kode SMS?
             </p>
             {canResend ? (
               <button
                 type="button"
                 onClick={handleResend}
-                className="mt-1 text-primary font-bold hover:underline inline-flex items-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary rounded p-1"
+                className="mt-1.5 text-brand-forest font-bold hover:underline inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest rounded-lg p-1.5"
                 aria-label="Kirim ulang kode OTP"
               >
                 <RotateCw size={14} aria-hidden="true" />
                 <span>Kirim Ulang Kode OTP</span>
               </button>
             ) : (
-              <p className="text-xs text-gray-600 mt-1 font-mono font-medium">
-                Kirim ulang tersedia dalam <strong>{countdown} detik</strong>
+              <p className="text-xs text-brand-muted mt-1.5 font-mono font-medium">
+                Kirim ulang tersedia dalam <strong className="text-brand-charcoal">{countdown} detik</strong>
               </p>
             )}
           </div>

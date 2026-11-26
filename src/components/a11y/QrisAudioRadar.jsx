@@ -87,14 +87,14 @@ export default function QrisAudioRadar({
 
   return (
     <div
-      className="w-full bg-gray-900/90 text-white p-3 rounded-2xl border border-amber-500/50 shadow-md flex flex-col gap-2.5 my-2"
+      className="w-full bg-brand-forest text-white p-3.5 rounded-2xl border border-brand-emerald/50 shadow-card-md flex flex-col gap-2.5 my-2"
       role="region"
       aria-label="Audio Radar QRIS"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Radar size={18} className="text-amber-400 animate-spin" />
-          <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">
+          <Radar size={18} className="text-emerald-300 animate-spin" />
+          <span className="text-xs font-bold text-emerald-200 uppercase tracking-wider">
             QRIS Audio Radar {proximity > 0 ? `(${Math.round(proximity)}% Dekat)` : '(Mencari)'}
           </span>
         </div>
@@ -102,7 +102,7 @@ export default function QrisAudioRadar({
         <button
           type="button"
           onClick={() => setIsMuted((prev) => !prev)}
-          className="p-1 rounded-lg text-gray-300 hover:text-white bg-white/10 text-xs flex items-center gap-1 px-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
+          className="p-1 rounded-lg text-white/80 hover:text-white bg-white/10 text-xs flex items-center gap-1 px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label={isMuted ? 'Nyalakan bunyi radar' : 'Bisukan bunyi radar'}
         >
           {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
@@ -111,24 +111,24 @@ export default function QrisAudioRadar({
       </div>
 
       {/* Bar Indikator Kedekatan Visual */}
-      <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
+      <div className="w-full bg-black/30 h-2 rounded-full overflow-hidden">
         <div
-          className="bg-gradient-to-r from-amber-500 to-green-400 h-full transition-all duration-200"
+          className="bg-gradient-to-r from-amber-400 to-emerald-400 h-full transition-all duration-200"
           style={{ width: `${proximity}%` }}
         />
       </div>
 
       {/* Kontrol Demonstrasi Radar Interaktif untuk Presentasi */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-gray-700 text-xs">
-        <span className="text-[11px] text-gray-400">Simulasi Jarak QR:</span>
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-white/15 text-xs">
+        <span className="text-[11px] text-white/75">Simulasi Jarak QR:</span>
         <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => setProximity(35)}
             className={`px-2 py-1 rounded-md text-[11px] font-bold border ${
               proximity === 35
-                ? 'bg-amber-500 text-gray-900 border-amber-400'
-                : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20'
+                ? 'bg-amber-400 text-brand-charcoal border-amber-300'
+                : 'bg-white/10 text-white/85 border-white/20 hover:bg-white/20'
             }`}
           >
             Mulai Terlihat
@@ -138,8 +138,8 @@ export default function QrisAudioRadar({
             onClick={() => setProximity(75)}
             className={`px-2 py-1 rounded-md text-[11px] font-bold border ${
               proximity === 75
-                ? 'bg-amber-500 text-gray-900 border-amber-400'
-                : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20'
+                ? 'bg-amber-400 text-brand-charcoal border-amber-300'
+                : 'bg-white/10 text-white/85 border-white/20 hover:bg-white/20'
             }`}
           >
             Mendekat
@@ -150,7 +150,7 @@ export default function QrisAudioRadar({
               setProximity(100);
               handleLockSuccess();
             }}
-            className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-green-600 hover:bg-green-700 text-white flex items-center gap-1 shadow-xs"
+            className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-brand-emerald hover:bg-brand-emerald/90 text-white flex items-center gap-1 shadow-xs"
           >
             <Zap size={12} />
             <span>Kunci QR</span>

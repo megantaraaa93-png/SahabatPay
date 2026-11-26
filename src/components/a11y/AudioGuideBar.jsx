@@ -21,10 +21,10 @@ export default function AudioGuideBar({
 
   return (
     <div
-      className={`rounded-2xl p-4 border transition-default ${
+      className={`rounded-2xl p-4 border transition-default shadow-card ${
         isAudioMode
-          ? 'bg-secondary/10 border-secondary/40 shadow-sm'
-          : 'bg-white border-gray-200'
+          ? 'bg-brand-emerald/10 border-brand-emerald/40'
+          : 'bg-white border-brand-border'
       } ${className}`}
       role="region"
       aria-label="Panduan Suara Halaman"
@@ -33,17 +33,17 @@ export default function AudioGuideBar({
         <div className="flex items-center gap-3">
           <div
             className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-              isPlaying ? 'bg-secondary text-white animate-pulse' : 'bg-gray-200 text-gray-800'
+              isPlaying ? 'bg-brand-emerald text-white animate-pulse' : 'bg-brand-cream text-brand-forest'
             }`}
             aria-hidden="true"
           >
             <Volume2 size={20} />
           </div>
           <div>
-            <p className={`font-bold text-gray-900 ${isEasyMode ? 'text-base' : 'text-sm'}`}>
+            <p className={`font-bold text-brand-charcoal ${isEasyMode ? 'text-base' : 'text-sm'}`}>
               Panduan Suara
             </p>
-            <p className="text-xs text-gray-700 font-medium">
+            <p className="text-xs text-brand-muted font-medium">
               {isPlaying ? 'Sedang membacakan instruksi...' : 'Tekan tombol untuk mendengarkan panduan layar'}
             </p>
           </div>
@@ -54,8 +54,8 @@ export default function AudioGuideBar({
             <button
               type="button"
               onClick={() => onPlay(instructionText)}
-              className={`flex items-center justify-center gap-2 font-semibold rounded-xl transition-default bg-secondary text-white hover:bg-secondary-dark focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary ${
-                isEasyMode ? 'px-5 py-3 text-base min-h-[56px]' : 'px-4 py-2 text-sm min-h-[44px]'
+              className={`flex items-center justify-center gap-2 font-semibold rounded-xl transition-default bg-brand-emerald text-white hover:bg-brand-emerald/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-emerald ${
+                isEasyMode ? 'px-5 py-3 text-base min-h-[64px]' : 'px-4 py-2 text-sm min-h-[44px]'
               }`}
               aria-label="Putar panduan suara untuk halaman ini"
             >
@@ -66,8 +66,8 @@ export default function AudioGuideBar({
             <button
               type="button"
               onClick={onStop}
-              className={`flex items-center justify-center gap-2 font-semibold rounded-xl transition-default bg-primary text-white hover:bg-primary-dark focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
-                isEasyMode ? 'px-5 py-3 text-base min-h-[56px]' : 'px-4 py-2 text-sm min-h-[44px]'
+              className={`flex items-center justify-center gap-2 font-semibold rounded-xl transition-default bg-brand-coral text-white hover:bg-brand-coral/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-coral ${
+                isEasyMode ? 'px-5 py-3 text-base min-h-[64px]' : 'px-4 py-2 text-sm min-h-[44px]'
               }`}
               aria-label="Hentikan panduan suara"
             >
@@ -82,8 +82,8 @@ export default function AudioGuideBar({
               onStop();
               setTimeout(() => onPlay(instructionText), 150);
             }}
-            className={`flex items-center justify-center rounded-xl border border-gray-300 bg-white text-gray-800 hover:bg-gray-100 transition-default focus-visible:outline focus-visible:outline-3 focus-visible:outline-primary ${
-              isEasyMode ? 'w-14 h-14' : 'w-11 h-11'
+            className={`flex items-center justify-center rounded-xl border border-brand-border bg-white text-brand-charcoal hover:bg-brand-cream transition-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-forest ${
+              isEasyMode ? 'w-16 h-16 min-h-[64px] min-w-[64px]' : 'w-11 h-11'
             }`}
             aria-label="Ulangi panduan suara dari awal"
             title="Ulangi panduan suara"
